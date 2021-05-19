@@ -7,6 +7,7 @@ const cors = require("cors");
 const port = 3000;
 
 const Login = require("./routes/login");
+const Device = require("./routes/device");
 
 app.use(cors());
 
@@ -17,6 +18,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use("/login", Login);
+app.use("/device", Device);
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);

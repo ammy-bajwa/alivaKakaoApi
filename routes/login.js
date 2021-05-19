@@ -10,6 +10,7 @@ router.get("/", async (req, res) => {
   const DEVICE_UUID = "f8895281da8661d50d2ee951b3068fd8";
   const DEVICE_NAME = "FSD_AMMY_PC";
   const authApi = await AuthApiClient.create(DEVICE_NAME, DEVICE_UUID);
+  store.setAuthApi(authApi);
   const loginRes = await authApi.login({
     email,
     password,
