@@ -1,5 +1,7 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
+
+const store = require("../store/index");
 
 const { AuthApiClient, TalkClient } = require("node-kakao");
 
@@ -21,8 +23,9 @@ router.get("/", async (req, res) => {
     });
   } else {
     console.log(`Received access token: ${loginRes.result.accessToken}`);
-    const CLIENT = new TalkClient();
-    const response = await CLIENT.login(loginRes.result);
+    const client = new TalkClient();
+    store.setClient(client);
+    const response = await client.login(loginRes.result);
     if (response.success) {
       const {
         result: { channelList },
