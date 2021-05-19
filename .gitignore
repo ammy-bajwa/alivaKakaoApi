@@ -84,7 +84,7 @@ out
 .nuxt
 dist
 
-.env
+*.env
 
 # Gatsby files
 .cache/
