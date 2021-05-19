@@ -1,8 +1,21 @@
 module.exports = {
   ws: null,
+  connection: null,
   client: null,
   authApi: null,
   message: [],
+  setConnection(connection) {
+    this.connection = connection;
+  },
+  getConnection() {
+    return this.connection;
+  },
+  setWs(wsInstance) {
+    this.ws = wsInstance;
+  },
+  getWs() {
+    return this.ws;
+  },
   setAuthApi(authApiInstance) {
     this.authApi = authApiInstance;
   },
