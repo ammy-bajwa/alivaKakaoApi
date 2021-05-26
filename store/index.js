@@ -1,9 +1,17 @@
 module.exports = {
-  ws: null,
-  connection: null,
+  connections: {},
   client: null,
   authApi: null,
   message: [],
+  setConnection(id, ws) {
+    this.connections[id] = ws;
+  },
+  getConnection(id) {
+    return this.connections[id];
+  },
+  removeConnection(id) {
+    this.connections[id] = undefined;
+  },
   setConnection(connection) {
     this.connection = connection;
   },
