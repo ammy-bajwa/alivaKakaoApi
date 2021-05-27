@@ -25,15 +25,17 @@ router.post("/", async (req, res) => {
     const client = new TalkClient();
     store.setClient(client);
     const response = await client.login(loginRes.result);
+    const allList = client.channelList.all();
+    let chatList = [];
+    for (const item of allList) {
+      chatList.push(item.info);
+    }
+
     if (response.success) {
-      const {
-        result: { channelList },
-      } = response;
       res.json({
         email,
-        password,
         accessToken: loginRes.result.accessToken,
-        channelList,
+        chatList,
       });
     } else {
       res.json({
