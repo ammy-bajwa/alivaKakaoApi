@@ -1,10 +1,14 @@
 const express = require("express");
+const { AuthApiClient } = require("node-kakao");
 const router = express.Router();
 
 const store = require("../store/index");
 
-router.get("/sendCode", async (req, res) => {
-  const authApi = store.authApi;
+router.post("/sendCode", async (req, res) => {
+  const { deviceName, deviceId, email, password } = req.body;
+  const authApi = await AuthApiClient.create(deviceName, deviceId);
+  const form = { email, password, forced: true };
+  store.setAuthApi(authApi);
   authApi
     .requestPasscode(form)
     .then((data) => {
@@ -21,15 +25,26 @@ router.get("/sendCode", async (req, res) => {
     });
 });
 
-router.get("/setCode", async (req, res) => {
+router.post("/setCode", async (req, res) => {
   const authApi = store.authApi;
+  const { code, email, password } = req.body;
+  const form = { email, password, forced: true };
+  console.log(authApi.name);
+  console.log(authApi.deviceUUID);
   authApi
-    .registerDevice(form, req.body.code, true)
+    .registerDevice(form, code, true)
     .then((data) => {
-      res.json({
-        message: "Device registere on kiwi successfully",
-        response: data,
-      });
+      if (!data.success) {
+        res.json({
+          message: "Error in registering your device",
+          error: data.status,
+        });
+      } else {
+        res.json({
+          message: "Device registere on kiwi successfully",
+          response: data,
+        });
+      }
     })
     .catch((err) => {
       res.json({

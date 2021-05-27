@@ -5,11 +5,9 @@ const store = require("../store/index");
 
 const { AuthApiClient, TalkClient } = require("node-kakao");
 
-router.get("/", async (req, res) => {
-  const { email, password } = req.body;
-  const DEVICE_UUID = "f8895281da8661d50d2ee951b3068fd8";
-  const DEVICE_NAME = "FSD_AMMY_PC";
-  const authApi = await AuthApiClient.create(DEVICE_NAME, DEVICE_UUID);
+router.post("/", async (req, res) => {
+  const { email, password, deviceName, deviceId } = req.body;
+  const authApi = await AuthApiClient.create(deviceName, deviceId);
   store.setAuthApi(authApi);
   const loginRes = await authApi.login({
     email,
