@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 
 const store = require("../store/index");
-const mainFile = require("../index");
 
 const { AuthApiClient, TalkClient } = require("node-kakao");
 
