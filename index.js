@@ -4,6 +4,7 @@ const WebSocket = require("ws");
 
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const { v4: uuidv4 } = require("uuid");
 
 const port = 3000;
 const wsPort = 5000;
@@ -34,7 +35,10 @@ const wss = new WebSocket.Server({ port: wsPort });
 wss.on("connection", function connection(ws) {
   ws.on("message", function incoming(message) {
     console.log("received: %s", message);
+    const { key, value } = JSON.parse(message);
+    if (key === "setEmail") {
+      store.setConnection(value, ws);
+    }
   });
-
   ws.send("something");
 });

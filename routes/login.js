@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const store = require("../store/index");
+const mainFile = require("../index");
 
 const { AuthApiClient, TalkClient } = require("node-kakao");
 
@@ -36,6 +37,24 @@ router.post("/", async (req, res) => {
         email,
         accessToken: loginRes.result.accessToken,
         chatList,
+      });
+
+      client.on("chat", (data, channel) => {
+        console.log(("chat data: ", data));
+        const sender = data.getSenderInfo(channel);
+        if (!sender) return;
+        if (data.text === "self") {
+          channel.sendChat("Hello from amir");
+        } else {
+          const { text, sendAt } = data;
+          const messageData = {
+            text,
+            sender,
+            sendAt,
+          };
+          const ws = store.getConnection(email);
+          ws.send(JSON.stringify(messageData));
+        }
       });
     } else {
       res.json({
