@@ -30,17 +30,24 @@ module.exports = {
   getAuthApi() {
     return this.authApi;
   },
-  setClient(clientInstance) {
+  setClient(clientInstance, id) {
     this.client = clientInstance;
     clientInstance.on("chat", (data, channel) => {
       console.log(("chat data: ", data));
       const sender = data.getSenderInfo(channel);
       if (!sender) return;
-
       if (data.text === "self") {
         channel.sendChat("Hello from amir");
       } else {
         this.ws;
+        const { text, sendAt } = data;
+        const messageData = {
+          text,
+          sender,
+          sendAt,
+        };
+        const ws = this.connections[id];
+        ws.send(JSON.stringify(messageData));
       }
     });
   },
