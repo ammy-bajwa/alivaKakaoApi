@@ -28,7 +28,7 @@ router.post("/", async (req, res) => {
     const allList = client.channelList.all();
     let chatList = {};
     for (const item of allList) {
-      const { displayUserList, type } = item.info;
+      const { displayUserList } = item.info;
       const { nickname } = displayUserList[0];
       chatList[nickname] = { ...item.info, messages: [] };
     }
@@ -58,7 +58,6 @@ router.post("/", async (req, res) => {
               receiverUser[nickname] = item;
             }
           }
-          console.log("Info=============: ", info);
           const messageData = {
             key: "newMesssage",
             text,
