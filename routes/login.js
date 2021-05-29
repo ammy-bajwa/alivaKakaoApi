@@ -49,9 +49,21 @@ router.post("/", async (req, res) => {
           channel.sendChat("Hello from amir");
         } else {
           const { text, sendAt } = data;
+          // const { nickname } = sender;
+          const info = channel.getAllUserInfo();
+          const receiverUser = {};
+          for (const item of info) {
+            const { nickname } = item;
+            if (nickname !== sender.nickname) {
+              receiverUser[nickname] = item;
+            }
+          }
+          console.log("Info=============: ", info);
           const messageData = {
+            key: "newMesssage",
             text,
             sender,
+            receiverUser,
             sendAt,
           };
           const ws = store.getConnection(email);
