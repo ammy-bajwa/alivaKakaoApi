@@ -26,9 +26,11 @@ router.post("/", async (req, res) => {
     store.setClient(client);
     const response = await client.login(loginRes.result);
     const allList = client.channelList.all();
-    let chatList = [];
+    let chatList = {};
     for (const item of allList) {
-      chatList.push(item.info);
+      const { displayUserList, type } = item.info;
+      const { nickname } = displayUserList[0];
+      chatList[nickname] = { ...item.info, messages: [] };
     }
 
     if (response.success) {
@@ -40,6 +42,7 @@ router.post("/", async (req, res) => {
 
       client.on("chat", (data, channel) => {
         console.log(("chat data: ", data));
+        console.log(("chat channel: ", channel));
         const sender = data.getSenderInfo(channel);
         if (!sender) return;
         if (data.text === "self") {
