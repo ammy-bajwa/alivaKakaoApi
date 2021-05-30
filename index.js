@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const port = 3000;
-const wsPort = 5000;
+const wsPort = 6001;
 
 const Login = require("./routes/login");
 const Device = require("./routes/device");
