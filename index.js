@@ -21,12 +21,12 @@ app.use(bodyParser.json());
 
 app.use(express.static("build"));
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
-});
-
 app.use("/login", Login);
 app.use("/device", Device);
+
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "build", "index.html"));
+});
 
 const myServer = app.listen(port, () => {
   console.log(
