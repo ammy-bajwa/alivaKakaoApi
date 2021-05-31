@@ -5,8 +5,8 @@ const WebSocket = require("ws");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
-const port = 3000;
-const wsPort = 6001;
+const port = 3000 || process.env.PORT;
+const wsPort = 6001 || process.env.PORT;
 
 const Login = require("./routes/login");
 const Device = require("./routes/device");
@@ -23,13 +23,20 @@ app.use(bodyParser.json());
 app.use("/login", Login);
 app.use("/device", Device);
 
-app.listen(port, () => {
+const myServer = app.listen(port, () => {
   console.log(
     `Example app listening at http://localhost:${port} ws at ws://localhost:${wsPort}`
   );
 });
+const wss = new WebSocket.Server({ noServer: true });
 
-const wss = new WebSocket.Server({ port: wsPort });
+myServer.on("upgrade", (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (socket) => {
+    wss.emit("connection", socket, request);
+  });
+});
+
+// const wss = new WebSocket.Server({ port: wsPort });
 
 wss.on("connection", function connection(ws) {
   ws.on("message", function incoming(message) {
@@ -37,6 +44,19 @@ wss.on("connection", function connection(ws) {
     const { key, value } = JSON.parse(message);
     if (key === "setEmail") {
       store.setConnection(value, ws);
+    } else if (key === "newMessage") {
+      const { email, message, receiver } = value;
+      const client = store.getClient(email);
+      const allList = client.channelList.all();
+      for (const item of allList) {
+        const { displayUserList } = item.info;
+        const { nickname } = displayUserList[0];
+        if (receiver === nickname) {
+          item.sendChat(message);
+          console.log("Message sended successfully");
+          break;
+        }
+      }
     }
   });
   ws.send("something");

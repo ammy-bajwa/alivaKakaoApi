@@ -1,8 +1,18 @@
 module.exports = {
   connections: {},
-  client: null,
+  clients: {},
   authApi: null,
   message: [],
+  chatList: {},
+  addChatList(email, chatList) {
+    this.chatList[email] = chatList;
+  },
+  getChatList(email) {
+    return this.chatList[email];
+  },
+  removeChatList(email) {
+    this.chatList[email] = null;
+  },
   setConnection(id, ws) {
     this.connections[id] = ws;
   },
@@ -24,10 +34,10 @@ module.exports = {
   getAuthApi() {
     return this.authApi;
   },
-  setClient(clientInstance, id) {
-    this.client = clientInstance;
+  setClient(email, clientInstance) {
+    this.clients[email] = clientInstance;
   },
-  getClient() {
-    return this.client;
+  getClient(email) {
+    return this.clients[email];
   },
 };

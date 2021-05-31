@@ -12,10 +12,17 @@ router.post("/sendCode", async (req, res) => {
   authApi
     .requestPasscode(form)
     .then((data) => {
-      res.json({
-        message: "Code sended to your kiwi device successfully",
-        response: data,
-      });
+      if (data.success) {
+        res.json({
+          message: "Code sended to your kiwi device successfully",
+          response: data,
+        });
+      } else {
+        res.json({
+          message: "Error in sending code to your device",
+          error: data,
+        });
+      }
     })
     .catch((err) => {
       res.json({

@@ -23,26 +23,28 @@ router.post("/", async (req, res) => {
   } else {
     console.log(`Received access token: ${loginRes.result.accessToken}`);
     const client = new TalkClient();
-    store.setClient(client);
     const response = await client.login(loginRes.result);
     const allList = client.channelList.all();
     let chatList = {};
+    let storeChatList = {};
     for (const item of allList) {
+      console.log(typeof item.channelId);
       const { displayUserList } = item.info;
       const { nickname } = displayUserList[0];
       chatList[nickname] = { ...item.info, messages: [] };
+      storeChatList[nickname] = item;
     }
 
     if (response.success) {
+      store.setClient(email, client);
       res.json({
         email,
         accessToken: loginRes.result.accessToken,
         chatList,
       });
-
+      store.addChatList(email, storeChatList);
       client.on("chat", (data, channel) => {
-        console.log(("chat data: ", data));
-        console.log(("chat channel: ", channel));
+        console.log("chat triggered");
         const sender = data.getSenderInfo(channel);
         if (!sender) return;
         if (data.text === "self") {
