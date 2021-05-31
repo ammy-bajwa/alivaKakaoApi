@@ -5,7 +5,7 @@ const WebSocket = require("ws");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
-const port = 3000 || process.env.PORT;
+const port = process.env.port || 3000;
 
 const Login = require("./routes/login");
 const Device = require("./routes/device");
