@@ -20,12 +20,18 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
+app.use(express.static("build"));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "build", "index.html"));
+});
+
 app.use("/login", Login);
 app.use("/device", Device);
 
 const myServer = app.listen(port, () => {
   console.log(
-    `Example app listening at http://localhost:${port} ws at ws://localhost:${wsPort}`
+    `Example app listening at http://localhost:${port} ws at ws://localhost:${port}`
   );
 });
 const wss = new WebSocket.Server({ noServer: true });

@@ -9,5 +9,11 @@
     "express": "^4.17.1",
     "node-kakao": "^4.2.2",
     "ws": "^7.4.6"
+  },
+  "scripts": {
+    "start": "node index"
+  },
+  "engines": {
+    "node": "14.x"
   }
 }
