@@ -3,10 +3,7 @@ const router = express.Router();
 
 const store = require("../store/index");
 
-const {
-  AuthApiClient,
-  TalkClient,
-} = require("node-kakao");
+const { AuthApiClient, TalkClient, TalkChatData } = require("node-kakao");
 
 router.post("/", async (req, res) => {
   const { email, password, deviceName, deviceId } = req.body;
@@ -18,7 +15,7 @@ router.post("/", async (req, res) => {
     // This option force login even other devices are logon
     forced: true,
   });
-  if (!loginRes.success) { 
+  if (!loginRes.success) {
     console.log(loginRes);
     res.json({
       error: loginRes.status,
@@ -27,26 +24,39 @@ router.post("/", async (req, res) => {
   } else {
     console.log(`Received access token: ${loginRes.result.accessToken}`);
     const client = new TalkClient();
+    const clientChat = new TalkChatData();
     const response = await client.login(loginRes.result);
     const allList = client.channelList.all();
     let chatList = {};
     let storeChatList = {};
+    const messageStore = [];
+    console.log(clientChat);
     for (const item of allList) {
-      console.log(typeof item.channelId);
+      const allChat = (await item.getChatListFrom()).result;
       const { displayUserList } = item.info;
       const { nickname } = displayUserList[0];
+      for (const message of allChat) {
+        const isMeSender =
+          parseInt(message.sender.userId) ===
+          parseInt(client.clientUser.userId);
+        messageStore.push({
+          text: message.text,
+          receiverUserName: isMeSender ? nickname : email,
+          received: true,
+          senderName: isMeSender ? email : nickname,
+        });
+      }
       chatList[nickname] = { ...item.info, messages: [] };
       storeChatList[nickname] = item;
     }
-    console.log(response);
     if (response.success) {
-      console.log("loginRes: ", loginRes);
       store.setClient(email, client);
       res.json({
         email,
         accessToken: loginRes.result.accessToken,
         refreshToken: loginRes.result.refreshToken,
         chatList,
+        messageStore,
       });
       store.addChatList(email, storeChatList);
       client.on("chat", (data, channel) => {
@@ -81,7 +91,6 @@ router.post("/", async (req, res) => {
       console.log(response);
       res.json({
         error: response,
-        accessToken,
         message: "Failed to login in Kakao talk",
       });
     }
