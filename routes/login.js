@@ -67,6 +67,7 @@ router.post("/", async (req, res) => {
           channel.sendChat("Hello from amir");
         } else {
           const { text, sendAt } = data;
+          const attachment = data.attachment();
           // const { nickname } = sender;
           const info = channel.getAllUserInfo();
           const receiverUser = {};
@@ -80,6 +81,7 @@ router.post("/", async (req, res) => {
             key: "newMesssage",
             text,
             sender,
+            attachment,
             receiverUser,
             sendAt,
           };
