@@ -46,19 +46,26 @@ myServer.on("upgrade", (request, socket, head) => {
 
 wss.on("connection", function connection(ws) {
   ws.on("message", function incoming(message) {
-    console.log("received: %s", message);
+    // console.log("received: %s", message);
     const { key, value } = JSON.parse(message);
     if (key === "setEmail") {
       store.setConnection(value, ws);
     } else if (key === "newMessage") {
-      const { email, message, receiver } = value;
+      const { email, message, receiver, files } = value;
+      console.log(files);
       const client = store.getClient(email);
       const allList = client.channelList.all();
       for (const item of allList) {
         const { displayUserList } = item.info;
         const { nickname } = displayUserList[0];
         if (receiver === nickname) {
-          item.sendChat(message);
+          if (files) {
+            item.sendMedia(-1, {
+              data: files,
+            });
+          } else {
+            item.sendChat(message);
+          }
           console.log("Message sended successfully");
           break;
         }
