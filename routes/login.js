@@ -39,7 +39,6 @@ router.post("/", async (req, res) => {
         const isMeSender =
           parseInt(message.sender.userId) ===
           parseInt(client.clientUser.userId);
-        console.log(message);
         messageStore.push({
           text: message.text,
           receiverUserName: isMeSender ? nickname : email,
