@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const WebSocket = require("ws");
+const multer = require("multer");
 
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -11,6 +12,19 @@ const port = process.env.PORT || 4030;
 const Login = require("./routes/login");
 const Device = require("./routes/device");
 const store = require("./store");
+const { readFileSync } = require("fs");
+
+// SET STORAGE
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+var upload = multer({ storage: storage });
 
 app.use(cors());
 
@@ -24,6 +38,17 @@ app.use(express.static("build"));
 
 app.use("/login", Login);
 app.use("/device", Device);
+
+app.post("/uploadfile", upload.single("myFile"), (req, res, next) => {
+  console.log("Route hit");
+  const file = req.file;
+  console.log(file);
+  res.json({
+    success: true,
+    fileName: file.originalname,
+    path: file.path,
+  });
+});
 
 app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "build", "index.html"));
@@ -51,22 +76,33 @@ wss.on("connection", function connection(ws) {
     if (key === "setEmail") {
       store.setConnection(value, ws);
     } else if (key === "newMessage") {
-      const { email, message, receiver, files } = value;
-      console.log(files);
+      const { email, message, receiver } = value;
       const client = store.getClient(email);
       const allList = client.channelList.all();
       for (const item of allList) {
         const { displayUserList } = item.info;
         const { nickname } = displayUserList[0];
         if (receiver === nickname) {
-          if (files) {
-            item.sendMedia(-1, {
-              data: files,
-            });
-          } else {
-            item.sendChat(message);
-          }
+          item.sendChat(message);
           console.log("Message sended successfully");
+          break;
+        }
+      }
+    } else if (key === "newMessageFile") {
+      const { email, message, receiver, filePath } = value;
+      console.log(filePath);
+      const client = store.getClient(email);
+      const allList = client.channelList.all();
+      for (const item of allList) {
+        const { displayUserList } = item.info;
+        const { nickname } = displayUserList[0];
+        if (receiver === nickname) {
+          const file = readFileSync(filePath);
+          console.log(file);
+          item.sendMedia(2, {
+            data: file,
+          });
+          console.log("File sended successfully");
           break;
         }
       }
