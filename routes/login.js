@@ -3,7 +3,26 @@ const router = express.Router();
 
 const store = require("../store/index");
 
-const { AuthApiClient, TalkClient, TalkChatData } = require("node-kakao");
+const {
+  AuthApiClient,
+  TalkClient,
+  TalkChatData,
+  // KnownAuthStatusCode,
+} = require("node-kakao");
+
+// router.post("/token", async (req, res) => {
+//   console.log("req.body: ", req.body);
+//   const { email, password, deviceName, deviceId } = req.body;
+//   const authApi = await AuthApiClient.create(deviceName, deviceId);
+//   store.setAuthApi(authApi);
+//   const loginRes = await authApi.loginToken({
+//     email,
+//     password, // This option force login even other devices are logon
+//     forced: true,
+//   });
+//   console.log("loginRes: ", loginRes, KnownAuthStatusCode);
+//   res.send("ok");
+// });
 
 router.post("/", async (req, res) => {
   const { email, password, deviceName, deviceId } = req.body;
@@ -15,6 +34,7 @@ router.post("/", async (req, res) => {
     // This option force login even other devices are logon
     forced: true,
   });
+
   if (!loginRes.success) {
     console.log(loginRes);
     res.json({
