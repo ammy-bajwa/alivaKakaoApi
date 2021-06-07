@@ -98,10 +98,10 @@ router.post("/", async (req, res) => {
         if (data.text === "self") {
           channel.sendChat("Hello from amir");
         } else {
-          const { text, sendAt } = data;
+          const { text } = data;
           const attachment = data.attachment();
-          // const { nickname } = sender;
           const info = channel.getAllUserInfo();
+          const sendAt = new Date().getTime();
           const receiverUser = {};
           for (const item of info) {
             const { nickname } = item;
