@@ -44,40 +44,51 @@ router.post("/", async (req, res) => {
   } else {
     console.log(`Received access token: ${loginRes.result.accessToken}`);
     const client = new TalkClient();
-    const clientChat = new TalkChatData();
     const response = await client.login(loginRes.result);
     const allList = client.channelList.all();
     let chatList = {};
+    let messages = {};
     let storeChatList = {};
     const messageStore = [];
-    console.log(clientChat);
+    const loggedInUserId = parseInt(response.result.userId);
     for (const item of allList) {
       const allChat = (await item.getChatListFrom()).result;
       const { displayUserList } = item.info;
-      const { nickname } = displayUserList[0];
+      const { nickname, userId } = displayUserList[0];
+      const currentUserId = parseInt(userId);
+      messages[nickname] = {
+        userId: currentUserId,
+        messages: [],
+      };
       for (const message of allChat) {
         const isMeSender =
           parseInt(message.sender.userId) ===
           parseInt(client.clientUser.userId);
-        messageStore.push({
+        const senderName = isMeSender ? email : nickname;
+        const msgObj = {
           text: message.text,
           receiverUserName: isMeSender ? nickname : email,
           attachment: message.attachment,
           received: true,
-          senderName: isMeSender ? email : nickname,
-        });
+          senderName,
+          sendAt: message.sendAt,
+        };
+        messageStore.push(msgObj);
+        messages[nickname].messages.push(msgObj);
       }
-      chatList[nickname] = { ...item.info, messages: [] };
+      chatList[nickname] = { ...item.info, messages: [], intId: currentUserId };
       storeChatList[nickname] = item;
     }
     if (response.success) {
       store.setClient(email, client);
       res.json({
         email,
+        loggedInUserId,
         accessToken: loginRes.result.accessToken,
         refreshToken: loginRes.result.refreshToken,
         chatList,
         messageStore,
+        messages,
       });
       store.addChatList(email, storeChatList);
       client.on("chat", (data, channel) => {
