@@ -101,7 +101,7 @@ router.post("/", async (req, res) => {
           const { text } = data;
           const attachment = data.attachment();
           const info = channel.getAllUserInfo();
-          const sendAt = new Date().getTime();
+          const messageReeciveTime = new Date().getTime();
           const receiverUser = {};
           for (const item of info) {
             const { nickname } = item;
@@ -115,7 +115,7 @@ router.post("/", async (req, res) => {
             sender,
             attachment,
             receiverUser,
-            sendAt,
+            sendAt: messageReeciveTime,
           };
           const ws = store.getConnection(email);
           ws.send(JSON.stringify(messageData));
