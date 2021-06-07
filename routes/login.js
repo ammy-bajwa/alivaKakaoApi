@@ -61,6 +61,7 @@ router.post("/", async (req, res) => {
         messages: [],
       };
       for (const message of allChat) {
+        console.log(message);
         const isMeSender =
           parseInt(message.sender.userId) ===
           parseInt(client.clientUser.userId);
@@ -98,10 +99,10 @@ router.post("/", async (req, res) => {
         if (data.text === "self") {
           channel.sendChat("Hello from amir");
         } else {
-          const { text } = data;
+          const { text, sendAt } = data;
           const attachment = data.attachment();
           const info = channel.getAllUserInfo();
-          const messageReeciveTime = new Date().getTime();
+          const messageReeciveTime = new Date(sendAt).getTime();
           const receiverUser = {};
           for (const item of info) {
             const { nickname } = item;
@@ -109,6 +110,7 @@ router.post("/", async (req, res) => {
               receiverUser[nickname] = item;
             }
           }
+          console.log(messageReeciveTime);
           const messageData = {
             key: "newMesssage",
             text,
