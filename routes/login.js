@@ -61,21 +61,21 @@ router.post("/", async (req, res) => {
         messages: [],
       };
       for (const message of allChat) {
-        console.log(message);
-        const isMeSender =
-          parseInt(message.sender.userId) ===
-          parseInt(client.clientUser.userId);
-        const senderName = isMeSender ? email : nickname;
-        const msgObj = {
-          text: message.text,
-          receiverUserName: isMeSender ? nickname : email,
-          attachment: message.attachment,
-          received: true,
-          senderName,
-          sendAt: message.sendAt,
-        };
-        messageStore.push(msgObj);
-        messages[nickname].messages.push(msgObj);
+        // console.log(message);
+        // const isMeSender =
+        //   parseInt(message.sender.userId) ===
+        //   parseInt(client.clientUser.userId);
+        // const senderName = isMeSender ? email : nickname;
+        // const msgObj = {
+        //   text: message.text,
+        //   receiverUserName: isMeSender ? nickname : email,
+        //   attachment: message.attachment,
+        //   received: true,
+        //   senderName,
+        //   sendAt: message.sendAt,
+        // };
+        // messageStore.push(msgObj);
+        // messages[nickname].messages.push(msgObj);
       }
       chatList[nickname] = { ...item.info, messages: [], intId: currentUserId };
       storeChatList[nickname] = item;

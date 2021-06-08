@@ -11,6 +11,7 @@ const port = process.env.PORT || 4030;
 
 const Login = require("./routes/login");
 const Device = require("./routes/device");
+const Chat = require("./routes/chat");
 const store = require("./store");
 const { readFileSync } = require("fs");
 
@@ -38,6 +39,7 @@ app.use(express.static("build"));
 
 app.use("/login", Login);
 app.use("/device", Device);
+app.use("/chat", Chat);
 
 app.post("/uploadfile", upload.single("myFile"), (req, res, next) => {
   console.log("Route hit");
