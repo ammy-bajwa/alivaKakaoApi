@@ -4,7 +4,7 @@ const router = express.Router();
 const store = require("../store/index");
 
 router.post("/", async (req, res) => {
-  const { email, nickNameToGetChat } = req.body;
+  const { email, nickNameToGetChat, lastMessageTimeStamp } = req.body;
   const client = store.getClient(email);
   const allList = client.channelList.all();
   let currentUserId = "",
@@ -30,7 +30,7 @@ router.post("/", async (req, res) => {
           senderName,
           sendAt: message.sendAt,
         };
-        messageStore.push(msgObj);
+        if (message.sendAt > lastMessageTimeStamp) messageStore.push(msgObj);
       }
       break;
     }
