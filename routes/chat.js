@@ -35,7 +35,6 @@ router.post("/", async (req, res) => {
       break;
     }
   }
-  console.log(req.body);
   res.json({
     data: { userId: currentUserId, messages: messageStore },
     success: true,
