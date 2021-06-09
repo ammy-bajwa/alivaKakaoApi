@@ -18,6 +18,7 @@ router.post("/", async (req, res) => {
       currentUserId = parseInt(userId);
       messageStore = [];
       for (const message of allChat) {
+        console.log(message);
         const isMeSender =
           parseInt(message.sender.userId) ===
           parseInt(client.clientUser.userId);

@@ -53,6 +53,7 @@ router.post("/", async (req, res) => {
     const loggedInUserId = parseInt(response.result.userId);
     for (const item of allList) {
       const allChat = (await item.getChatListFrom()).result;
+      console.log(await item.getChatListFrom());
       const { displayUserList } = item.info;
       const { nickname, userId } = displayUserList[0];
       const currentUserId = parseInt(userId);
