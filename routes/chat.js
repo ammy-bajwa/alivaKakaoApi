@@ -10,32 +10,47 @@ router.post("/", async (req, res) => {
   let currentUserId = "",
     messageStore = [];
   for (const item of allList) {
+    // Here we are getting all the messages from a time stamp
     const { displayUserList } = item.info;
     const { nickname } = displayUserList[0];
     if (nickname === nickNameToGetChat) {
+      const unreadMessages = await item.chatListStore.since(
+        lastMessageTimeStamp
+      );
+      console.log(await item.chatListStore.all());
       const { userId } = displayUserList[0];
-      const allChat = (await item.getChatListFrom()).result;
-      currentUserId = parseInt(userId);
       messageStore = [];
-      for (const message of allChat) {
-        console.log(message);
-        const isMeSender =
-          parseInt(message.sender.userId) ===
-          parseInt(client.clientUser.userId);
-        const senderName = isMeSender ? email : nickname;
-        const msgObj = {
-          text: message.text,
-          receiverUserName: isMeSender ? nickname : email,
-          attachment: message.attachment,
-          received: true,
-          senderName,
-          sendAt: message.sendAt,
-        };
-        if (message.sendAt > lastMessageTimeStamp) messageStore.push(msgObj);
+      let loopControler = 0;
+      while (loopControler < 80) {
+        const { value, done } = await unreadMessages.next();
+        console.log(nickname);
+        if (done) {
+          break;
+        } else {
+          const isMeSender =
+            parseInt(value.sender.userId) ===
+            parseInt(client.clientUser.userId);
+          console.log(value);
+          const senderName = isMeSender ? email : nickname;
+          const msgObj = {
+            text: value.text,
+            receiverUserName: isMeSender ? nickname : email,
+            attachment: value.attachment,
+            received: true,
+            senderName,
+            sendAt: value.sendAt,
+          };
+          if (lastMessageTimeStamp !== value.sendAt) {
+            messageStore.push(msgObj);
+          }
+        }
+        loopControler++;
       }
+      currentUserId = parseInt(userId);
       break;
     }
   }
+  console.log("messageStore: ", messageStore);
   res.json({
     data: { userId: currentUserId, messages: messageStore },
     success: true,
