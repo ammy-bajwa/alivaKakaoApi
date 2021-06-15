@@ -7,6 +7,8 @@ COPY package*.json ./
 
 RUN npm install
 
+RUN mkdir -p ./uploads
+
 # Bundle app source
 COPY . .
 
