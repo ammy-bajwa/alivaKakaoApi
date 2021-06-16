@@ -88,9 +88,10 @@ router.post("/", async (req, res) => {
           const messageReeciveTime = new Date(sendAt).getTime();
           const receiverUser = {};
           for (const item of info) {
-            const { nickname } = item;
+            const { nickname, userId } = item;
             if (nickname !== sender.nickname) {
               receiverUser[nickname] = item;
+              receiverUser[nickname].intId = parseInt(userId);
             }
           }
           console.log(messageReeciveTime);
