@@ -48,8 +48,6 @@ router.post("/", async (req, res) => {
               sendAt: receivedMessageObj.sendAt,
               logId: parseInt(receivedMessageObj.logId),
             };
-            console.log(receivedMessageObj.logId);
-
             if (receivedMessageObj.sendAt > lastMessageTimeStamp) {
               messageStore.push(msgObj);
             }

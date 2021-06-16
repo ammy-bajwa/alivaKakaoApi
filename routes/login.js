@@ -76,25 +76,38 @@ router.post("/", async (req, res) => {
       });
       store.addChatList(email, storeChatList);
       client.on("chat", (data, channel) => {
-        console.log("chat triggered");
         const sender = data.getSenderInfo(channel);
-        if (!sender) return;
-        if (data.text === "self") {
-          channel.sendChat("Hello from amir");
+        if (!sender) {
+          return;
         } else {
-          const { text, sendAt } = data;
-          const attachment = data.attachment();
+          const {
+            _chat: {
+              text,
+              sendAt,
+              attachment,
+              sender: { userId },
+            },
+          } = data;
+          const senderIntUserId = parseInt(userId);
           const info = channel.getAllUserInfo();
           const messageReeciveTime = new Date(sendAt).getTime();
-          const receiverUser = {};
-          for (const item of info) {
-            const { nickname, userId } = item;
-            if (nickname !== sender.nickname) {
-              receiverUser[nickname] = item;
-              receiverUser[nickname].intId = parseInt(userId);
+          let receiverUser = {};
+          let senderUser = {};
+          try {
+            for (const item of info) {
+              const { userId } = item;
+              const currentUserIntId = parseInt(userId);
+              if (senderIntUserId === currentUserIntId) {
+                senderUser = item;
+                senderUser.intId = currentUserIntId;
+              } else {
+                receiverUser = item;
+                receiverUser.intId = parseInt(userId);
+              }
             }
+          } catch (error) {
+            console.error(error);
           }
-          console.log(messageReeciveTime);
           const messageData = {
             key: "newMesssage",
             text,
@@ -108,7 +121,6 @@ router.post("/", async (req, res) => {
         }
       });
     } else {
-      console.log(response);
       res.json({
         error: response,
         message: "Failed to login in Kakao talk",
