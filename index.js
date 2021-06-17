@@ -85,10 +85,22 @@ wss.on("connection", function connection(ws) {
       const allList = client.channelList.all();
       for (const item of allList) {
         const { displayUserList } = item.info;
-        const { nickname } = displayUserList[0];
+        const { nickname, userId } = displayUserList[0];
         if (receiver === nickname) {
-          item.sendChat(message);
-          console.log("Message sended successfully");
+          const receiverUser = { intId: parseInt(userId), nickname };
+          const {
+            result: { text, sendAt, sender },
+          } = await item.sendChat(message);
+          const newMessage = {
+            key: "newMesssage",
+            text,
+            sender: { intId: parseInt(sender.userId), nickname: email },
+            attachment: {},
+            receiverUser,
+            sendAt,
+          };
+          ws.send(JSON.stringify(newMessage));
+          console.log("Message sended successfully: ");
           break;
         }
       }
@@ -99,13 +111,25 @@ wss.on("connection", function connection(ws) {
       const allList = client.channelList.all();
       for (const item of allList) {
         const { displayUserList } = item.info;
-        const { nickname } = displayUserList[0];
+        const { nickname, userId } = displayUserList[0];
         if (receiver === nickname) {
           const file = readFileSync(filePath);
           console.log(file);
-          item.sendMedia(2, {
+          const {
+            result: { text, sendAt, sender, attachment },
+          } = await item.sendMedia(2, {
             data: file,
           });
+          const receiverUser = { intId: parseInt(userId), nickname };
+          const newMessage = {
+            key: "newMesssage",
+            text,
+            sender: { intId: parseInt(sender.userId), nickname: email },
+            attachment,
+            receiverUser,
+            sendAt,
+          };
+          ws.send(JSON.stringify(newMessage));
           console.log("File sended successfully");
           break;
         }

@@ -75,6 +75,10 @@ router.post("/", async (req, res) => {
         messages,
       });
       store.addChatList(email, storeChatList);
+      client.on("chat_event", (p1, p2) => {
+        console.log("+++++++P1: ", p1);
+        console.log("+++++++P2: ", p2);
+      });
       client.on("chat", (data, channel) => {
         const sender = data.getSenderInfo(channel);
         if (!sender) {
