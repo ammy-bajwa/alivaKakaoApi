@@ -25,7 +25,8 @@ const {
 // });
 
 router.post("/", async (req, res) => {
-  const { email, password, deviceName, deviceId } = req.body;
+  const { email, password, deviceName, deviceId, lastMessageTimeStamp } =
+    req.body;
   const authApi = await AuthApiClient.create(deviceName, deviceId);
   store.setAuthApi(authApi);
   const loginRes = await authApi.login({
@@ -52,9 +53,16 @@ router.post("/", async (req, res) => {
     const messageStore = [];
     const loggedInUserId = parseInt(response.result.userId);
     for (const item of allList) {
-      // console.log(item.syncChatList)
       const { displayUserList } = item.info;
       const { nickname, userId } = displayUserList[0];
+      const resultSince = await item.chatListStore.since(1623783391000);
+      while (true) {
+        const { done, value } = await resultSince.next();
+        console.log(nickname, "-----------", value);
+        if (done) {
+          break;
+        }
+      }
       const currentUserId = parseInt(userId);
       messages[nickname] = {
         userId: currentUserId,
