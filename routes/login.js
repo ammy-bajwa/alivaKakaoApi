@@ -9,6 +9,7 @@ const {
   TalkChatData,
   // KnownAuthStatusCode,
 } = require("node-kakao");
+const { getAllMessages } = require("../helpers/chat");
 
 // router.post("/token", async (req, res) => {
 //   console.log("req.body: ", req.body);
@@ -52,27 +53,34 @@ router.post("/", async (req, res) => {
     let storeChatList = {};
     const messageStore = [];
     const loggedInUserId = parseInt(response.result.userId);
+    let largestTimeStamp = lastMessageTimeStamp;
     for (const item of allList) {
       const { displayUserList, lastChatLogId } = item.info;
       const { nickname, userId } = displayUserList[0];
-      // await item.getChatListFrom();
-      // const resultSince = await item.getChatListFrom();
-      // const resultSince = item.chatListStore.since(lastMessageTimeStamp);
-      // console.log(nickname, "-----------", resultSince);
-      // while (true) {
-      //   const { done, value } = await resultSince.next();
-      //   console.log(nickname, "-----------", value);
-      //   if (done) {
-      //     break;
-      //   }
-      // }
       const currentUserId = parseInt(userId);
       messages[nickname] = {
         userId: currentUserId,
         messages: [],
       };
-      chatList[nickname] = { ...item.info, messages: [], intId: currentUserId };
+      const { newMessages, latestTimeStamp } = await getAllMessages(
+        item,
+        lastChatLogId,
+        0,
+        client.clientUser.userId,
+        email,
+        nickname,
+        lastMessageTimeStamp
+      );
+      chatList[nickname] = {
+        ...item.info,
+        messages: newMessages,
+        intId: currentUserId,
+      };
       storeChatList[nickname] = item;
+      console.log("latestTimeStamp: ", latestTimeStamp);
+      if (latestTimeStamp > largestTimeStamp) {
+        largestTimeStamp = latestTimeStamp;
+      }
     }
     if (response.success) {
       store.setClient(email, client);
@@ -84,6 +92,7 @@ router.post("/", async (req, res) => {
         chatList,
         messageStore,
         messages,
+        largestTimeStamp,
       });
       store.addChatList(email, storeChatList);
       client.on("chat", (data, channel) => {

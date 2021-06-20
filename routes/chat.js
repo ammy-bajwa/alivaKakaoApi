@@ -20,7 +20,7 @@ router.post("/", async (req, res) => {
     const { nickname } = displayUserList[0];
     if (nickname === nickNameToGetChat) {
       if (startChatLogId > 0) {
-        messageStore = await getAllMessages(
+        const { newMessages, latestTimeStamp } = await getAllMessages(
           item,
           lastChatLogId,
           startChatLogId,
@@ -29,9 +29,10 @@ router.post("/", async (req, res) => {
           nickname,
           lastMessageTimeStamp
         );
+        messageStore = newMessages;
         console.info("messageStore routes------", messageStore.length);
       } else {
-        messageStore = await getAllMessages(
+        const { newMessages, latestTimeStamp } = await getAllMessages(
           item,
           lastChatLogId,
           0,
@@ -40,6 +41,7 @@ router.post("/", async (req, res) => {
           nickname,
           lastMessageTimeStamp
         );
+        messageStore = newMessages;
         console.info("messageStore routes------", messageStore.length);
       }
 
