@@ -89,13 +89,14 @@ wss.on("connection", function connection(ws) {
         if (receiver === nickname) {
           const receiverUser = { intId: parseInt(userId), nickname };
           const {
-            result: { text, sendAt, sender },
+            result: { text, sendAt, sender, logId },
           } = await item.sendChat(message);
           const newMessage = {
             key: "newMesssage",
             text,
             sender: { intId: parseInt(sender.userId), nickname: email },
             attachment: {},
+            logId: parseInt(logId),
             receiverUser,
             sendAt,
           };
@@ -116,7 +117,7 @@ wss.on("connection", function connection(ws) {
           const file = readFileSync(filePath);
           console.log(file);
           const {
-            result: { text, sendAt, sender, attachment },
+            result: { text, sendAt, sender, attachment, logId },
           } = await item.sendMedia(2, {
             data: file,
           });
@@ -126,6 +127,7 @@ wss.on("connection", function connection(ws) {
             text,
             sender: { intId: parseInt(sender.userId), nickname: email },
             attachment,
+            logId: parseInt(logId),
             receiverUser,
             sendAt,
           };

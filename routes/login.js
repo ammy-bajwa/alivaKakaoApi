@@ -55,8 +55,9 @@ router.post("/", async (req, res) => {
     const loggedInUserId = parseInt(response.result.userId);
     let largestTimeStamp = lastMessageTimeStamp;
     for (const item of allList) {
-      const { displayUserList, lastChatLogId } = item.info;
+      const { displayUserList, lastChatLogId, newChatCount } = item.info;
       const { nickname, userId } = displayUserList[0];
+      // console.log(`${nickname}---------`, item.info);
       const currentUserId = parseInt(userId);
       messages[nickname] = {
         userId: currentUserId,
@@ -77,7 +78,7 @@ router.post("/", async (req, res) => {
         intId: currentUserId,
       };
       storeChatList[nickname] = item;
-      console.log("latestTimeStamp: ", latestTimeStamp);
+      // console.log("latestTimeStamp: ", latestTimeStamp);
       if (latestTimeStamp > largestTimeStamp) {
         largestTimeStamp = latestTimeStamp;
       }
@@ -105,12 +106,13 @@ router.post("/", async (req, res) => {
               text,
               sendAt,
               attachment,
+              logId,
               sender: { userId },
             },
           } = data;
           const senderIntUserId = parseInt(userId);
           const info = channel.getAllUserInfo();
-          console.log(sendAt);
+          console.log(data);
           let receiverUser = {};
           let senderUser = {};
           try {
@@ -132,6 +134,7 @@ router.post("/", async (req, res) => {
             key: "newMesssage",
             text,
             sender,
+            logId: parseInt(logId),
             attachment,
             receiverUser,
             sendAt,
