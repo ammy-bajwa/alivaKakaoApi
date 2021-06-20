@@ -53,16 +53,19 @@ router.post("/", async (req, res) => {
     const messageStore = [];
     const loggedInUserId = parseInt(response.result.userId);
     for (const item of allList) {
-      const { displayUserList } = item.info;
+      const { displayUserList, lastChatLogId } = item.info;
       const { nickname, userId } = displayUserList[0];
-      const resultSince = await item.chatListStore.since(1623783391000);
-      while (true) {
-        const { done, value } = await resultSince.next();
-        console.log(nickname, "-----------", value);
-        if (done) {
-          break;
-        }
-      }
+      // await item.getChatListFrom();
+      // const resultSince = await item.getChatListFrom();
+      // const resultSince = item.chatListStore.since(lastMessageTimeStamp);
+      // console.log(nickname, "-----------", resultSince);
+      // while (true) {
+      //   const { done, value } = await resultSince.next();
+      //   console.log(nickname, "-----------", value);
+      //   if (done) {
+      //     break;
+      //   }
+      // }
       const currentUserId = parseInt(userId);
       messages[nickname] = {
         userId: currentUserId,
@@ -98,7 +101,7 @@ router.post("/", async (req, res) => {
           } = data;
           const senderIntUserId = parseInt(userId);
           const info = channel.getAllUserInfo();
-          const messageReeciveTime = new Date(sendAt).getTime();
+          console.log(sendAt);
           let receiverUser = {};
           let senderUser = {};
           try {
@@ -122,7 +125,7 @@ router.post("/", async (req, res) => {
             sender,
             attachment,
             receiverUser,
-            sendAt: messageReeciveTime,
+            sendAt,
           };
           const ws = store.getConnection(email);
           ws.send(JSON.stringify(messageData));

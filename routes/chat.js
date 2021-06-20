@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Long } = require("node-kakao");
+const { getAllMessages } = require("../helpers/chat");
 
 const store = require("../store/index");
 
@@ -18,48 +19,36 @@ router.post("/", async (req, res) => {
     const { displayUserList, lastChatLogId } = item.info;
     const { nickname } = displayUserList[0];
     if (nickname === nickNameToGetChat) {
-      // const test = await item.chatListStore.since(lastMessageTimeStamp);
-      let syncedList = await item.syncChatList(lastChatLogId);
       if (startChatLogId > 0) {
-        syncedList = await item.syncChatList(
+        messageStore = await getAllMessages(
+          item,
           lastChatLogId,
-          Long.fromValue(startChatLogId)
+          startChatLogId,
+          client.clientUser.userId,
+          email,
+          nickname,
+          lastMessageTimeStamp
         );
+        console.info("messageStore routes------", messageStore.length);
+      } else {
+        messageStore = await getAllMessages(
+          item,
+          lastChatLogId,
+          0,
+          client.clientUser.userId,
+          email,
+          nickname,
+          lastMessageTimeStamp
+        );
+        console.info("messageStore routes------", messageStore.length);
       }
-      messageStore = [];
-      while (true) {
-        const { value, done } = await syncedList.next();
-        if (done) {
-          break;
-        } else {
-          const { result } = value;
-          for (let index = 0; index < result.length; index++) {
-            const receivedMessageObj = result[index];
-            const isMeSender =
-              parseInt(receivedMessageObj.sender.userId) ===
-              parseInt(client.clientUser.userId);
-            const senderName = isMeSender ? email : nickname;
-            const msgObj = {
-              text: receivedMessageObj.text,
-              receiverUserName: isMeSender ? nickname : email,
-              attachment: receivedMessageObj.attachment,
-              received: true,
-              senderName,
-              sendAt: receivedMessageObj.sendAt,
-              logId: parseInt(receivedMessageObj.logId),
-            };
-            if (receivedMessageObj.sendAt > lastMessageTimeStamp) {
-              messageStore.push(msgObj);
-            }
-          }
-        }
-      }
+
       const { userId } = displayUserList[0];
       currentUserId = parseInt(userId);
       break;
     }
   }
-  console.log("messageStore: ", messageStore.length);
+  // console.log("messageStore: ", messageStore);
   res.json({
     data: { userId: currentUserId, messages: messageStore },
     success: true,
