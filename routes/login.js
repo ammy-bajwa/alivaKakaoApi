@@ -43,7 +43,7 @@ router.post("/", async (req, res) => {
   });
 
   if (!loginRes.success) {
-    console.log(loginRes);
+    console.log("loginRes: ", loginRes);
     res.json({
       error: loginRes.status,
       message: "Failed to login",
@@ -90,6 +90,7 @@ router.post("/", async (req, res) => {
           ...item.info,
           messages: itemChat,
           intId: currentUserId,
+          newChatCount,
           lastChatLogId: parseInt(lastChatLogId),
         };
         storeChatList[nickname] = item;
@@ -158,7 +159,7 @@ router.post("/", async (req, res) => {
         }
       });
     } else {
-      console.error(response);
+      console.error("Client login failed: ", response);
       res.json({
         error: response,
         message: "Failed to login in Kakao talk",

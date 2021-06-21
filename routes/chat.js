@@ -17,6 +17,12 @@ router.post("/", async (req, res) => {
     const { displayUserList, lastChatLogId } = item.info;
     const { nickname } = displayUserList[0];
     if (nickname === nickNameToGetChat) {
+      try {
+        const data = await item.markRead(lastChatLogId);
+        console.log("data: ", data);
+      } catch (error) {
+        console.error(error);
+      }
       if (parseInt(lastChatLogId) > startChatLogId) {
         const { newMessages, latestTimeStamp } = await getAllMessages(
           item,
