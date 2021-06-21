@@ -6,8 +6,7 @@ const store = require("../store/index");
 const {
   AuthApiClient,
   TalkClient,
-  TalkChatData,
-  // KnownAuthStatusCode,
+  KnownAuthStatusCode,
 } = require("node-kakao");
 const { getAllMessages } = require("../helpers/chat");
 
@@ -26,8 +25,14 @@ const { getAllMessages } = require("../helpers/chat");
 // });
 
 router.post("/", async (req, res) => {
-  const { email, password, deviceName, deviceId, lastMessageTimeStamp } =
-    req.body;
+  const {
+    email,
+    password,
+    deviceName,
+    deviceId,
+    lastMessageTimeStamp,
+    contactListLogs,
+  } = req.body;
   const authApi = await AuthApiClient.create(deviceName, deviceId);
   store.setAuthApi(authApi);
   const loginRes = await authApi.login({
@@ -44,7 +49,6 @@ router.post("/", async (req, res) => {
       message: "Failed to login",
     });
   } else {
-    console.log(`Received access token: ${loginRes.result.accessToken}`);
     const client = new TalkClient();
     const response = await client.login(loginRes.result);
     const allList = client.channelList.all();
@@ -54,37 +58,48 @@ router.post("/", async (req, res) => {
     const messageStore = [];
     const loggedInUserId = parseInt(response.result.userId);
     let largestTimeStamp = lastMessageTimeStamp;
-    for (const item of allList) {
-      const { displayUserList, lastChatLogId, newChatCount } = item.info;
-      const { nickname, userId } = displayUserList[0];
-      // console.log(`${nickname}---------`, item.info);
-      const currentUserId = parseInt(userId);
-      messages[nickname] = {
-        userId: currentUserId,
-        messages: [],
-      };
-      const { newMessages, latestTimeStamp } = await getAllMessages(
-        item,
-        lastChatLogId,
-        0,
-        client.clientUser.userId,
-        email,
-        nickname,
-        lastMessageTimeStamp
-      );
-      chatList[nickname] = {
-        ...item.info,
-        messages: newMessages,
-        intId: currentUserId,
-      };
-      storeChatList[nickname] = item;
-      // console.log("latestTimeStamp: ", latestTimeStamp);
-      if (latestTimeStamp > largestTimeStamp) {
-        largestTimeStamp = latestTimeStamp;
+    try {
+      for (const item of allList) {
+        const { displayUserList, lastChatLogId, newChatCount } = item.info;
+        const { nickname, userId } = displayUserList[0];
+        const currentUserId = parseInt(userId);
+        messages[nickname] = {
+          userId: currentUserId,
+          messages: [],
+        };
+        const myStartChatLog = contactListLogs[nickname]
+          ? contactListLogs[nickname].lastChatLogId
+          : 0;
+        let itemChat = [];
+        if (parseInt(lastChatLogId) > myStartChatLog) {
+          const { newMessages, latestTimeStamp } = await getAllMessages(
+            item,
+            lastChatLogId,
+            myStartChatLog,
+            client.clientUser.userId,
+            email,
+            nickname,
+            lastMessageTimeStamp
+          );
+          itemChat = newMessages;
+          if (latestTimeStamp > largestTimeStamp) {
+            largestTimeStamp = latestTimeStamp;
+          }
+        }
+        chatList[nickname] = {
+          ...item.info,
+          messages: itemChat,
+          intId: currentUserId,
+          lastChatLogId: parseInt(lastChatLogId),
+        };
+        storeChatList[nickname] = item;
       }
+    } catch (error) {
+      console.error(error);
     }
     if (response.success) {
       store.setClient(email, client);
+      console.log(`Login Success`);
       res.json({
         email,
         loggedInUserId,
@@ -112,7 +127,6 @@ router.post("/", async (req, res) => {
           } = data;
           const senderIntUserId = parseInt(userId);
           const info = channel.getAllUserInfo();
-          console.log(data);
           let receiverUser = {};
           let senderUser = {};
           try {
@@ -144,6 +158,7 @@ router.post("/", async (req, res) => {
         }
       });
     } else {
+      console.error(response);
       res.json({
         error: response,
         message: "Failed to login in Kakao talk",

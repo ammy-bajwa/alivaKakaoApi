@@ -8,8 +8,6 @@ const store = require("../store/index");
 router.post("/", async (req, res) => {
   const { email, nickNameToGetChat, lastMessageTimeStamp, startChatLogId } =
     req.body;
-  console.log("startChatLogId: ", startChatLogId);
-  console.log("isWorking: ", Long.isLong({ startChatLogId }));
   const client = store.getClient(email);
   const allList = client.channelList.all();
   let currentUserId = "",
@@ -19,7 +17,7 @@ router.post("/", async (req, res) => {
     const { displayUserList, lastChatLogId } = item.info;
     const { nickname } = displayUserList[0];
     if (nickname === nickNameToGetChat) {
-      if (startChatLogId > 0) {
+      if (parseInt(lastChatLogId) > startChatLogId) {
         const { newMessages, latestTimeStamp } = await getAllMessages(
           item,
           lastChatLogId,
@@ -31,20 +29,7 @@ router.post("/", async (req, res) => {
         );
         messageStore = newMessages;
         console.info("messageStore routes------", messageStore.length);
-      } else {
-        const { newMessages, latestTimeStamp } = await getAllMessages(
-          item,
-          lastChatLogId,
-          0,
-          client.clientUser.userId,
-          email,
-          nickname,
-          lastMessageTimeStamp
-        );
-        messageStore = newMessages;
-        console.info("messageStore routes------", messageStore.length);
       }
-
       const { userId } = displayUserList[0];
       currentUserId = parseInt(userId);
       break;
