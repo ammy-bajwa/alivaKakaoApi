@@ -9,10 +9,15 @@ router.post("/", async (req, res) => {
   const allList = client.channelList.all();
   let chatList = {};
   for (const item of allList) {
-    const { displayUserList } = item.info;
+    const { displayUserList, lastChatLogId } = item.info;
     const { nickname, userId } = displayUserList[0];
     const currentUserId = parseInt(userId);
-    chatList[nickname] = { ...item.info, messages: [], intId: currentUserId };
+    chatList[nickname] = {
+      ...item.info,
+      messages: [],
+      lastChatLogId: parseInt(lastChatLogId),
+      intId: currentUserId,
+    };
   }
   res.json({
     data: { chatList },
