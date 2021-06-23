@@ -31,7 +31,7 @@ router.post("/", async (req, res) => {
     deviceName,
     deviceId,
     lastMessageTimeStamp,
-    contactListLogs,
+    latestLogId,
   } = req.body;
   const authApi = await AuthApiClient.create(deviceName, deviceId);
   store.setAuthApi(authApi);
@@ -57,7 +57,9 @@ router.post("/", async (req, res) => {
     let storeChatList = {};
     const messageStore = [];
     const loggedInUserId = parseInt(response.result.userId);
-    let largestTimeStamp = lastMessageTimeStamp;
+    let largestTimeStamp = lastMessageTimeStamp,
+      biggestChatLog = 0;
+
     try {
       for (const item of allList) {
         const { displayUserList, lastChatLogId, newChatCount } = item.info;
@@ -67,11 +69,10 @@ router.post("/", async (req, res) => {
           userId: currentUserId,
           messages: [],
         };
-        const myStartChatLog = contactListLogs[nickname]
-          ? contactListLogs[nickname].lastChatLogId
-          : 0;
+        const myStartChatLog = latestLogId;
         let itemChat = [];
-        if (parseInt(lastChatLogId) > myStartChatLog) {
+        const lastChatLogIdInt = parseInt(lastChatLogId);
+        if (lastChatLogIdInt > myStartChatLog) {
           const { newMessages, latestTimeStamp } = await getAllMessages(
             item,
             lastChatLogId,
@@ -84,6 +85,9 @@ router.post("/", async (req, res) => {
           itemChat = newMessages;
           if (latestTimeStamp > largestTimeStamp) {
             largestTimeStamp = latestTimeStamp;
+          }
+          if (lastChatLogIdInt > biggestChatLog) {
+            biggestChatLog = lastChatLogIdInt;
           }
         }
         chatList[nickname] = {
@@ -110,6 +114,7 @@ router.post("/", async (req, res) => {
         messageStore,
         messages,
         largestTimeStamp,
+        biggestChatLog,
       });
       store.addChatList(email, storeChatList);
       client.on("chat", (data, channel) => {
