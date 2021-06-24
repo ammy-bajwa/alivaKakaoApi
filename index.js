@@ -13,6 +13,7 @@ const Login = require("./routes/login");
 const Device = require("./routes/device");
 const Chat = require("./routes/chat");
 const Contact = require("./routes/contact");
+const Media = require("./routes/media");
 const store = require("./store");
 const { readFileSync } = require("fs");
 
@@ -42,6 +43,7 @@ app.use("/login", Login);
 app.use("/device", Device);
 app.use("/chat", Chat);
 app.use("/contact", Contact);
+app.use("/media", Media);
 
 app.post("/uploadfile", upload.single("myFile"), (req, res, next) => {
   console.log("Route hit");

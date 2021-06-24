@@ -35,6 +35,12 @@ const getAllMessages = async (
               parseInt(receivedMessageObj.sender.userId) ===
               parseInt(clientUserId);
             const senderName = isMeSender ? email : nickname;
+            if (receivedMessageObj.attachment?.url) {
+              console.log(
+                "downloadMedia: ",
+                await item.downloadMedia(receivedMessageObj.attachment?.url)
+              );
+            }
             const msgObj = {
               text: receivedMessageObj.text,
               receiverUserName: isMeSender ? nickname : email,
