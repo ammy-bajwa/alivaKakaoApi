@@ -51,15 +51,21 @@ router.post("/", async (req, res) => {
   } else {
     const client = new TalkClient();
     const response = await client.login(loginRes.result);
+    if (!response.success) {
+      console.error("Client login failed: ", response);
+      res.json({
+        error: response,
+        message: "Failed to login in Kakao talk",
+      });
+      return;
+    }
     const allList = client.channelList.all();
     let chatList = {};
     let messages = {};
     let storeChatList = {};
     const messageStore = [];
     const loggedInUserId = parseInt(response.result.userId);
-    let largestTimeStamp = lastMessageTimeStamp,
-      biggestChatLog = 0;
-
+    let largestTimeStamp = lastMessageTimeStamp;
     try {
       for (const item of allList) {
         const { displayUserList, lastChatLogId, newChatCount } = item.info;
@@ -69,14 +75,12 @@ router.post("/", async (req, res) => {
           userId: currentUserId,
           messages: [],
         };
-        const myStartChatLog = latestLogId;
         let itemChat = [];
-        const lastChatLogIdInt = parseInt(lastChatLogId);
-        if (lastChatLogIdInt > myStartChatLog) {
+        if (parseInt(lastChatLogId) > latestLogId) {
           const { newMessages, latestTimeStamp } = await getAllMessages(
             item,
             lastChatLogId,
-            myStartChatLog,
+            latestLogId,
             client.clientUser.userId,
             email,
             nickname,
@@ -85,9 +89,6 @@ router.post("/", async (req, res) => {
           itemChat = newMessages;
           if (latestTimeStamp > largestTimeStamp) {
             largestTimeStamp = latestTimeStamp;
-          }
-          if (lastChatLogIdInt > biggestChatLog) {
-            biggestChatLog = lastChatLogIdInt;
           }
         }
         chatList[nickname] = {
@@ -99,76 +100,76 @@ router.post("/", async (req, res) => {
         };
         storeChatList[nickname] = item;
       }
+
+      if (response.success) {
+        store.setClient(email, client);
+        console.log(`Login Success`);
+        res.json({
+          email,
+          loggedInUserId,
+          accessToken: loginRes.result.accessToken,
+          refreshToken: loginRes.result.refreshToken,
+          chatList,
+          messageStore,
+          messages,
+          largestTimeStamp,
+        });
+        store.addChatList(email, storeChatList);
+        client.on("chat", (data, channel) => {
+          const sender = data.getSenderInfo(channel);
+          if (!sender) {
+            return;
+          } else {
+            const {
+              _chat: {
+                text,
+                sendAt,
+                attachment,
+                logId,
+                sender: { userId },
+              },
+            } = data;
+            const senderIntUserId = parseInt(userId);
+            const info = channel.getAllUserInfo();
+            let receiverUser = {};
+            let senderUser = {};
+            try {
+              for (const item of info) {
+                const { userId } = item;
+                const currentUserIntId = parseInt(userId);
+                if (senderIntUserId === currentUserIntId) {
+                  senderUser = item;
+                  senderUser.intId = currentUserIntId;
+                } else {
+                  receiverUser = item;
+                  receiverUser.intId = parseInt(userId);
+                }
+              }
+            } catch (error) {
+              console.error(error);
+            }
+            const messageData = {
+              key: "newMesssage",
+              text,
+              sender,
+              logId: parseInt(logId),
+              attachment,
+              receiverUser,
+              sendAt,
+            };
+            const ws = store.getConnection(email);
+            ws.send(JSON.stringify(messageData));
+          }
+        });
+      } else {
+        console.error("Client login failed: ", response);
+        res.json({
+          error: response,
+          message: "Failed to login in Kakao talk",
+        });
+      }
     } catch (error) {
       console.error(error);
-    }
-    if (response.success) {
-      store.setClient(email, client);
-      console.log(`Login Success`);
-      res.json({
-        email,
-        loggedInUserId,
-        accessToken: loginRes.result.accessToken,
-        refreshToken: loginRes.result.refreshToken,
-        chatList,
-        messageStore,
-        messages,
-        largestTimeStamp,
-        biggestChatLog,
-      });
-      store.addChatList(email, storeChatList);
-      client.on("chat", (data, channel) => {
-        const sender = data.getSenderInfo(channel);
-        if (!sender) {
-          return;
-        } else {
-          const {
-            _chat: {
-              text,
-              sendAt,
-              attachment,
-              logId,
-              sender: { userId },
-            },
-          } = data;
-          const senderIntUserId = parseInt(userId);
-          const info = channel.getAllUserInfo();
-          let receiverUser = {};
-          let senderUser = {};
-          try {
-            for (const item of info) {
-              const { userId } = item;
-              const currentUserIntId = parseInt(userId);
-              if (senderIntUserId === currentUserIntId) {
-                senderUser = item;
-                senderUser.intId = currentUserIntId;
-              } else {
-                receiverUser = item;
-                receiverUser.intId = parseInt(userId);
-              }
-            }
-          } catch (error) {
-            console.error(error);
-          }
-          const messageData = {
-            key: "newMesssage",
-            text,
-            sender,
-            logId: parseInt(logId),
-            attachment,
-            receiverUser,
-            sendAt,
-          };
-          const ws = store.getConnection(email);
-          ws.send(JSON.stringify(messageData));
-        }
-      });
-    } else {
-      console.error("Client login failed: ", response);
-      res.json({
-        error: response,
-        message: "Failed to login in Kakao talk",
-      });
     }
   }
 });
