@@ -49,58 +49,58 @@ router.post("/", async (req, res) => {
       message: "Failed to login",
     });
   } else {
-    const client = new TalkClient();
-    const response = await client.login(loginRes.result);
-    if (!response.success) {
-      console.error("Client login failed: ", response);
-      res.json({
-        error: response,
-        message: "Failed to login in Kakao talk",
-      });
-      return;
-    }
-    const allList = client.channelList.all();
-    let chatList = {};
-    let messages = {};
-    let storeChatList = {};
-    const messageStore = [];
-    const loggedInUserId = parseInt(response.result.userId);
-    let largestTimeStamp = lastMessageTimeStamp;
     try {
-      for (const item of allList) {
-        const { displayUserList, lastChatLogId, newChatCount } = item.info;
-        const { nickname, userId } = displayUserList[0];
-        const currentUserId = parseInt(userId);
-        messages[nickname] = {
-          userId: currentUserId,
-          messages: [],
-        };
-        let itemChat = [];
-        if (parseInt(lastChatLogId) > latestLogId) {
-          const { newMessages, latestTimeStamp } = await getAllMessages(
-            item,
-            lastChatLogId,
-            latestLogId,
-            client.clientUser.userId,
-            email,
-            nickname,
-            lastMessageTimeStamp
-          );
-          itemChat = newMessages;
-          if (latestTimeStamp > largestTimeStamp) {
-            largestTimeStamp = latestTimeStamp;
+      const client = new TalkClient();
+      const response = await client.login(loginRes.result);
+      console.log("response: ", response.success);
+      console.log("req.body: ", req.body);
+      const allList = client.channelList.all();
+      let chatList = {};
+      let messages = {};
+      let storeChatList = {};
+      const messageStore = [];
+      const loggedInUserId = parseInt(response.result.userId);
+      let largestTimeStamp = lastMessageTimeStamp;
+      try {
+        for (const item of allList) {
+          const { displayUserList, lastChatLogId, newChatCount } = item.info;
+          const { nickname, userId } = displayUserList[0];
+          const currentUserId = parseInt(userId);
+          messages[nickname] = {
+            userId: currentUserId,
+            messages: [],
+          };
+          const myStartChatLog = contactListLogs[nickname]
+            ? contactListLogs[nickname].lastChatLogId
+            : 0;
+          let itemChat = [];
+          if (parseInt(lastChatLogId) > myStartChatLog) {
+            const { newMessages, latestTimeStamp } = await getAllMessages(
+              item,
+              lastChatLogId,
+              myStartChatLog,
+              client.clientUser.userId,
+              email,
+              nickname,
+              lastMessageTimeStamp
+            );
+            itemChat = newMessages;
+            if (latestTimeStamp > largestTimeStamp) {
+              largestTimeStamp = latestTimeStamp;
+            }
           }
+          chatList[nickname] = {
+            ...item.info,
+            messages: itemChat,
+            intId: currentUserId,
+            newChatCount,
+            lastChatLogId: parseInt(lastChatLogId),
+          };
+          storeChatList[nickname] = item;
         }
-        chatList[nickname] = {
-          ...item.info,
-          messages: itemChat,
-          intId: currentUserId,
-          newChatCount,
-          lastChatLogId: parseInt(lastChatLogId),
-        };
-        storeChatList[nickname] = item;
+      } catch (error) {
+        console.error(error);
       }
-
       if (response.success) {
         store.setClient(email, client);
         console.log(`Login Success`);

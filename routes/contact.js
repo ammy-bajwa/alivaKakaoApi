@@ -12,10 +12,11 @@ router.post("/", async (req, res) => {
     const { displayUserList, lastChatLogId } = item.info;
     const { nickname, userId } = displayUserList[0];
     const currentUserId = parseInt(userId);
+    const myLastChatLogId = parseInt(lastChatLogId);
     chatList[nickname] = {
       ...item.info,
       messages: [],
-      lastChatLogId: parseInt(lastChatLogId),
+      lastChatLogId: myLastChatLogId,
       intId: currentUserId,
     };
   }
