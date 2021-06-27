@@ -1,4 +1,5 @@
 const { Long } = require("node-kakao");
+const { downloadFile } = require("./files");
 
 const getAllMessages = async (
   item,
@@ -35,6 +36,14 @@ const getAllMessages = async (
               parseInt(receivedMessageObj.sender.userId) ===
               parseInt(clientUserId);
             const senderName = isMeSender ? email : nickname;
+            if (
+              receivedMessageObj.text === "photo" &&
+              receivedMessageObj.attachment &&
+              receivedMessageObj?.attachment?.thumbnailUrl
+            ) {
+              receivedMessageObj.attachment.thumbnailUrlBase64 =
+                await downloadFile(receivedMessageObj.attachment.thumbnailUrl);
+            }
             const msgObj = {
               text: receivedMessageObj.text,
               receiverUserName: isMeSender ? nickname : email,

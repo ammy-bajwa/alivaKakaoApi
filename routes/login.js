@@ -50,10 +50,16 @@ router.post("/", async (req, res) => {
     });
   } else {
     try {
-      const client = new TalkClient();
-      const response = await client.login(loginRes.result);
-      console.log("response: ", response.success);
-      console.log("req.body: ", req.body);
+      let client;
+      let response;
+      for (let index = 0; index < 15; index++) {
+        client = new TalkClient();
+        response = await client.login(loginRes.result);
+        if (response.success) {
+          break;
+        }
+        console.log("response: ", response.success);
+      }
       const allList = client.channelList.all();
       let chatList = {};
       let messages = {};
