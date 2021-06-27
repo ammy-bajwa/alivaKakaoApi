@@ -43,6 +43,10 @@ const getAllMessages = async (
             ) {
               receivedMessageObj.attachment.thumbnailUrlBase64 =
                 await downloadFile(receivedMessageObj.attachment.thumbnailUrl);
+
+              receivedMessageObj.attachment.urlBase64 = await downloadFile(
+                receivedMessageObj.attachment.url
+              );
             }
             const msgObj = {
               text: receivedMessageObj.text,
