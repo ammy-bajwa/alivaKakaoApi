@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
     let client;
     let response,
       lastAccessToken = "";
-    for (let index = 0; index < 15; index++) {
+    for (let index = 0; index < 5; index++) {
       authApi = await AuthApiClient.create(deviceName, deviceId);
       loginRes = await authApi.login({
         email,
@@ -47,7 +47,6 @@ router.post("/", async (req, res) => {
         // This option force login even other devices are logon
         forced: true,
       });
-      console.log("Fired");
       if (!loginRes.success) {
         console.log("loginRes: ", loginRes);
         res.json({
@@ -58,6 +57,7 @@ router.post("/", async (req, res) => {
       } else {
         if (lastAccessToken !== loginRes.result.accessToken) {
           store.setAuthApi(authApi);
+          lastAccessToken = loginRes.result.accessToken;
           client = new TalkClient();
           response = await client.login({
             accessToken: loginRes.result.accessToken,
