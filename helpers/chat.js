@@ -43,10 +43,14 @@ const getAllMessages = async (
             ) {
               receivedMessageObj.attachment.thumbnailUrlBase64 =
                 await downloadFile(receivedMessageObj.attachment.thumbnailUrl);
-
               receivedMessageObj.attachment.urlBase64 = await downloadFile(
                 receivedMessageObj.attachment.url
               );
+
+              const mediaTypeArr =
+                receivedMessageObj.attachment.thumbnailUrl.split(".");
+              const mediaType = mediaTypeArr[mediaTypeArr.length - 1];
+              console.log("mediaType: ", mediaType);
             }
             const msgObj = {
               text: receivedMessageObj.text,
