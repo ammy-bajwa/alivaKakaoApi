@@ -37,42 +37,40 @@ router.post("/", async (req, res) => {
 
   try {
     let client;
-    let response,
-      lastAccessToken = "";
-    for (let index = 0; index < 5; index++) {
-      authApi = await AuthApiClient.create(deviceName, deviceId);
-      loginRes = await authApi.login({
-        email,
-        password,
-        // This option force login even other devices are logon
-        forced: true,
+    let response;
+
+    authApi = await AuthApiClient.create(deviceName, deviceId);
+    loginRes = await authApi.login({
+      email,
+      password,
+      // This option force login even other devices are logon
+      forced: true,
+    });
+    if (!loginRes.success) {
+      console.log("loginRes: ", loginRes);
+      res.json({
+        error: loginRes.status,
+        message: "Failed to login",
       });
-      if (!loginRes.success) {
-        console.log("loginRes: ", loginRes);
-        res.json({
-          error: loginRes.status,
-          message: "Failed to login",
-        });
+    }
+    store.setAuthApi(authApi);
+    client = new TalkClient();
+    response = await client.login({
+      accessToken: loginRes.result.accessToken,
+      refreshToken: loginRes.result.refreshToken,
+      deviceUUID: loginRes.result.deviceUUID,
+    });
+
+    for (let index = 0; index < 15; index++) {
+      response = await client.login({
+        accessToken: loginRes.result.accessToken,
+        refreshToken: loginRes.result.refreshToken,
+        deviceUUID: loginRes.result.deviceUUID,
+      });
+      if (response.success) {
         break;
       } else {
-        if (lastAccessToken !== loginRes.result.accessToken) {
-          store.setAuthApi(authApi);
-          lastAccessToken = loginRes.result.accessToken;
-          client = new TalkClient();
-          response = await client.login({
-            accessToken: loginRes.result.accessToken,
-            refreshToken: loginRes.result.refreshToken,
-            deviceUUID: loginRes.result.deviceUUID,
-          });
-          console.log("response: ", loginRes.result.accessToken);
-          console.log("response: ", response);
-          if (response.success) {
-            break;
-          }
-        } else {
-          console.log("Same token");
-          continue;
-        }
+        console.log(response.success);
       }
     }
     const allList = client.channelList.all();
