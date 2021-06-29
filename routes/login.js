@@ -37,7 +37,8 @@ router.post("/", async (req, res) => {
 
   try {
     let client;
-    let response;
+    let response,
+      lastAccessToken = "";
     for (let index = 0; index < 15; index++) {
       authApi = await AuthApiClient.create(deviceName, deviceId);
       loginRes = await authApi.login({
@@ -46,6 +47,7 @@ router.post("/", async (req, res) => {
         // This option force login even other devices are logon
         forced: true,
       });
+      console.log("Fired");
       if (!loginRes.success) {
         console.log("loginRes: ", loginRes);
         res.json({
@@ -53,14 +55,25 @@ router.post("/", async (req, res) => {
           message: "Failed to login",
         });
         break;
+      } else {
+        if (lastAccessToken !== loginRes.result.accessToken) {
+          store.setAuthApi(authApi);
+          client = new TalkClient();
+          response = await client.login({
+            accessToken: loginRes.result.accessToken,
+            refreshToken: loginRes.result.refreshToken,
+            deviceUUID: loginRes.result.deviceUUID,
+          });
+          console.log("response: ", loginRes.result.accessToken);
+          console.log("response: ", response);
+          if (response.success) {
+            break;
+          }
+        } else {
+          console.log("Same token");
+          continue;
+        }
       }
-      store.setAuthApi(authApi);
-      client = new TalkClient();
-      response = await client.login(loginRes.result);
-      if (response.success) {
-        break;
-      }
-      console.log("response: ", response.success);
     }
     const allList = client.channelList.all();
     let chatList = {};
