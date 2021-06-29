@@ -9,6 +9,7 @@ const {
   KnownAuthStatusCode,
 } = require("node-kakao");
 const { getAllMessages } = require("../helpers/chat");
+const { causeDelay } = require("../helpers/delay");
 
 // router.post("/token", async (req, res) => {
 //   console.log("req.body: ", req.body);
@@ -60,17 +61,19 @@ router.post("/", async (req, res) => {
       refreshToken: loginRes.result.refreshToken,
       deviceUUID: loginRes.result.deviceUUID,
     });
-
-    for (let index = 0; index < 15; index++) {
-      response = await client.login({
-        accessToken: loginRes.result.accessToken,
-        refreshToken: loginRes.result.refreshToken,
-        deviceUUID: loginRes.result.deviceUUID,
-      });
-      if (response.success) {
-        break;
-      } else {
-        console.log(response.success);
+    if (!response.success) {
+      for (let index = 0; index < 15; index++) {
+        await causeDelay(5000);
+        response = await client.login({
+          accessToken: loginRes.result.accessToken,
+          refreshToken: loginRes.result.refreshToken,
+          deviceUUID: loginRes.result.deviceUUID,
+        });
+        if (response.success) {
+          break;
+        } else {
+          console.log(response.success);
+        }
       }
     }
     const allList = client.channelList.all();
