@@ -54,30 +54,51 @@ router.post("/", async (req, res) => {
       });
     } else {
       store.setAuthApi(authApi);
+      console.log("Auth access: ", loginRes.result.accessToken);
       client = new TalkClient();
       response = await client.login({
         accessToken: loginRes.result.accessToken,
         refreshToken: loginRes.result.refreshToken,
         deviceUUID: loginRes.result.deviceUUID,
       });
+      let oldAccessToken = loginRes.result.accessToken,
+        oldRefreshToken = loginRes.result.refreshToken;
       if (!response.success) {
-        const oAuthClient = OAuthApiClient.create();
-        const {
-          result: {
-            credential: { deviceUUID, accessToken, refreshToken },
-          },
-        } = await (
-          await oAuthClient
-        ).renew({
-          deviceUUID: deviceId,
-          accessToken: loginRes.result.accessToken,
-          refreshToken: loginRes.result.refreshToken,
-        });
-        response = await client.login({
-          accessToken: accessToken,
-          refreshToken: refreshToken,
-          deviceUUID: deviceUUID,
-        });
+        console.log("Second");
+        for (let index = 0; index < 5; index++) {
+          const oAuthClient = OAuthApiClient.create();
+          const {
+            result: {
+              credential: { deviceUUID, accessToken, refreshToken },
+            },
+          } = await (
+            await oAuthClient
+          ).renew({
+            deviceUUID: deviceId,
+            accessToken: oldAccessToken,
+            refreshToken: oldRefreshToken,
+          });
+          (oldAccessToken = accessToken), (oldRefreshToken = refreshToken);
+          response = await client.login({
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            deviceUUID: deviceUUID,
+          });
+          if (response.success) {
+            break;
+          } else {
+            console.log("accessToken: ", accessToken);
+            console.log("response: ", response);
+          }
+        }
+        if (!response.success) {
+          console.log("loginRes: ", loginRes);
+          res.json({
+            error: response.status,
+            message: "Failed to login",
+          });
+          return;
+        }
       }
       const allList = client.channelList.all();
       let chatList = {};
