@@ -6,22 +6,42 @@ const store = require("../store/index");
 const {
   AuthApiClient,
   TalkClient,
-  // KnownAuthStatusCode,
+  KnownAuthStatusCode,
   OAuthApiClient,
   // ServiceApiClient,
 } = require("node-kakao");
 const { getAllMessages } = require("../helpers/chat");
 const { causeDelay } = require("../helpers/delay");
 
+router.post("/logout", async (req, res) => {
+  const { accessToken, refreshToken, deviceId, deviceName } = req.body;
+  const CLIENT = new TalkClient();
+  const loginRes = await CLIENT.login({
+    deviceUUID: deviceId,
+    accessToken: accessToken,
+    refreshToken: refreshToken,
+  });
+  console.log("loginRes: ", loginRes);
+  // const oAuthClient = OAuthApiClient.create();
+  // const result = await (
+  //   await oAuthClient
+  // ).renew({
+  //   deviceUUID: deviceId,
+  //   accessToken,
+  //   refreshToken,
+  // });
+  res.send("ok");
+});
+
 // router.post("/token", async (req, res) => {
 //   console.log("req.body: ", req.body);
-//   const { email, password, deviceName, deviceId } = req.body;
+//   const { accessToken, refreshToken, deviceId, deviceName } = req.body;
 //   const authApi = await AuthApiClient.create(deviceName, deviceId);
 //   store.setAuthApi(authApi);
-//   const loginRes = await authApi.loginToken({
-//     email,
-//     password, // This option force login even other devices are logon
-//     forced: true,
+//   const loginRes = await authApi.login({
+//     deviceUUID: deviceId,
+//     accessToken: accessToken,
+//     refreshToken: refreshToken,
 //   });
 //   console.log("loginRes: ", loginRes, KnownAuthStatusCode);
 //   res.send("ok");
@@ -35,33 +55,54 @@ router.post("/", async (req, res) => {
     deviceId,
     lastMessageTimeStamp,
     latestLogId,
+    accessToken,
+    refreshToken,
   } = req.body;
-  let authApi, loginRes;
-
+  let authApi,
+    loginRes,
+    client,
+    response,
+    isTokenLogin = false;
   try {
-    let client;
-    let response;
-    authApi = await AuthApiClient.create(deviceName, deviceId);
-    loginRes = await authApi.login({
-      email,
-      password,
-      forced: true,
-    });
-    if (!loginRes.success) {
-      console.log("loginRes: ", loginRes);
-      res.json({
-        error: loginRes.status,
-        message: "Failed to login",
+    if (accessToken && refreshToken) {
+      client = new TalkClient();
+      response = await client.login({
+        accessToken,
+        refreshToken,
+        deviceUUID: deviceId,
       });
+      isTokenLogin = true;
     } else {
-      store.setAuthApi(authApi);
-      console.log("Auth access: ", loginRes.result.accessToken);
+      authApi = await AuthApiClient.create(deviceName, deviceId);
+      loginRes = await authApi.login({
+        email,
+        password,
+        forced: true,
+      });
+      console.log("Auth access: ", loginRes.result);
       client = new TalkClient();
       response = await client.login({
         accessToken: loginRes.result.accessToken,
         refreshToken: loginRes.result.refreshToken,
         deviceUUID: loginRes.result.deviceUUID,
       });
+      console.log(response);
+    }
+    if (isTokenLogin && !response.success) {
+      console.log("response: ", response);
+      res.json({
+        error: response.status,
+        message: "Failed to login",
+      });
+    } else {
+      if (!isTokenLogin && !loginRes.success) {
+        console.log("loginRes: ", loginRes);
+        res.json({
+          error: loginRes.status,
+          message: "Failed to login",
+        });
+      }
+      store.setAuthApi(authApi);
       let oldAccessToken = loginRes.result.accessToken,
         oldRefreshToken = loginRes.result.refreshToken;
       if (!response.success) {
@@ -89,7 +130,7 @@ router.post("/", async (req, res) => {
           if (response.success) {
             break;
           } else {
-            // console.log("accessToken: ", accessToken);
+            console.log("accessToken: ", accessToken);
             console.log("response: ", response);
           }
         }
