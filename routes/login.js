@@ -62,6 +62,7 @@ router.post("/", async (req, res) => {
       deviceUUID: loginRes.result.deviceUUID,
     });
     if (!response.success) {
+      console.log("client.logon: ", client.logon);
       for (let index = 0; index < 15; index++) {
         await causeDelay(5000);
         if (response.success) {
