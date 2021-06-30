@@ -46,7 +46,6 @@ router.post("/", async (req, res) => {
       password,
       forced: true,
     });
-    console.log("Auth: ", loginRes);
     if (!loginRes.success) {
       console.log("loginRes: ", loginRes);
       res.json({
