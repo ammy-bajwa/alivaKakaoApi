@@ -95,7 +95,7 @@ router.post("/", async (req, res) => {
         message: "Failed to login",
       });
     } else {
-      if (!isTokenLogin && !loginRes.success) {
+      if (!isTokenLogin && loginRes?.success === false) {
         console.log("loginRes: ", loginRes);
         res.json({
           error: loginRes.status,
@@ -108,7 +108,7 @@ router.post("/", async (req, res) => {
       if (!response.success) {
         console.log("Second");
         for (let index = 0; index < 5; index++) {
-          causeDelay(2000);
+          causeDelay(15000);
           const oAuthClient = OAuthApiClient.create();
           const {
             result: {
