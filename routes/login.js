@@ -87,12 +87,12 @@ router.post("/", async (req, res) => {
           if (response.success) {
             break;
           } else {
-            console.log("accessToken: ", accessToken);
-            console.log("response: ", response);
+            // console.log("accessToken: ", accessToken);
+            // console.log("response: ", response);
           }
         }
         if (!response.success) {
-          console.log("loginRes: ", loginRes);
+          console.log("response: ", response);
           res.json({
             error: response.status,
             message: "Failed to login",
