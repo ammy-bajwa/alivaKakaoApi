@@ -1,6 +1,17 @@
 const { Long } = require("node-kakao");
 const { downloadFile } = require("./files");
 
+const checkIfDeletedSign = (message) => {
+  const check1 = message.text.includes("feedType");
+  const check2 = message.text.includes("logId");
+  const check3 = message.text.includes("hidden");
+  const check4 = message.text.includes("true");
+  if (check1 && check2 && check3 && check4) {
+    return true;
+  }
+  return false;
+};
+
 const getAllMessages = async (
   item,
   lastChatLogId,
@@ -22,7 +33,6 @@ const getAllMessages = async (
       } else {
         allMessages = await item.syncChatList(lastChatLogId);
       }
-
       messageStore = [];
       while (true) {
         const { value, done } = await allMessages.next();
@@ -32,10 +42,33 @@ const getAllMessages = async (
           const { result } = value;
           for (let index = 0; index < result.length; index++) {
             const receivedMessageObj = result[index];
+
+            const nextMessage = result[index + 1];
             const isMeSender =
               parseInt(receivedMessageObj.sender.userId) ===
               parseInt(clientUserId);
             const senderName = isMeSender ? email : nickname;
+            if (nextMessage) {
+              const isDeletedSelf = checkIfDeletedSign(receivedMessageObj);
+              // let isDeletedNext = checkIfDeletedSign(nextMessage);
+              // if (isDeletedNext) {
+              //   continue;
+              // } else
+              if (isDeletedSelf) {
+                console.log(receivedMessageObj);
+                const messageObject = {
+                  text: "This is deleted message sign",
+                  receiverUserName: isMeSender ? nickname : email,
+                  attachment: receivedMessageObj.attachment,
+                  received: true,
+                  senderName,
+                  sendAt: receivedMessageObj.sendAt,
+                  logId: parseInt(receivedMessageObj.logId),
+                };
+                messageStore.push(messageObject);
+                continue;
+              }
+            }
             if (
               (receivedMessageObj.text === "photo" ||
                 receivedMessageObj.text === "사진") &&
