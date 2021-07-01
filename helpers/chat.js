@@ -37,7 +37,8 @@ const getAllMessages = async (
               parseInt(clientUserId);
             const senderName = isMeSender ? email : nickname;
             if (
-              receivedMessageObj.text === "photo" &&
+              (receivedMessageObj.text === "photo" ||
+                receivedMessageObj.text === "사진") &&
               receivedMessageObj.attachment &&
               receivedMessageObj?.attachment?.thumbnailUrl
             ) {
