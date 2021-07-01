@@ -143,7 +143,12 @@ router.post("/", async (req, res) => {
         biggestChatLog,
       });
       store.addChatList(email, storeChatList);
+      client.on("chat_deleted", (p1, p2) => {
+        console.log("chat_deleted p1: ", p1);
+        console.log("chat_deleted p2: ", p2);
+      });
       client.on("chat", (data, channel) => {
+        console.log("Chat called");
         const sender = data.getSenderInfo(channel);
         if (!sender) {
           return;
