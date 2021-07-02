@@ -145,6 +145,9 @@ router.post("/", async (req, res) => {
       console.log(`Login Success: `);
       console.log(`loginRes: `, loginRes);
       console.log(`lastTryResult: `, lastTryResult);
+      if (!loginRes) {
+        loginRes = lastTryResult;
+      }
       res.json({
         email,
         loggedInUserId,
