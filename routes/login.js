@@ -6,31 +6,30 @@ const store = require("../store/index");
 const {
   AuthApiClient,
   TalkClient,
-  KnownAuthStatusCode,
-  OAuthApiClient,
+  // KnownAuthStatusCode,
+  // OAuthApiClient,
   // ServiceApiClient,
 } = require("node-kakao");
 const { getAllMessages } = require("../helpers/chat");
 const { causeDelay } = require("../helpers/delay");
+const { lastTryResults } = require("../store/index");
 
 router.post("/logout", async (req, res) => {
-  const { accessToken, refreshToken, deviceId, deviceName } = req.body;
-  const CLIENT = new TalkClient();
-  const loginRes = await CLIENT.login({
-    deviceUUID: deviceId,
-    accessToken: accessToken,
-    refreshToken: refreshToken,
-  });
-  console.log("loginRes: ", loginRes);
-  // const oAuthClient = OAuthApiClient.create();
-  // const result = await (
-  //   await oAuthClient
-  // ).renew({
-  //   deviceUUID: deviceId,
-  //   accessToken,
-  //   refreshToken,
-  // });
-  res.send("ok");
+  const { email } = req.body;
+  const client = store.getClient(email);
+  try {
+    await client.close();
+    console.log(`Client before close ${client.logon}`);
+    console.log(`Client closed for ${email}`);
+    console.log(`Client after close ${client.logon}`);
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    res.json({
+      success: true,
+    });
+  }
 });
 
 // router.post("/token", async (req, res) => {
@@ -62,29 +61,42 @@ router.post("/", async (req, res) => {
     loginRes,
     client,
     response,
-    isTokenLogin = false;
+    isTokenLogin = false,
+    lastTryResult = store.getLastTry(email);
   try {
-    authApi = await AuthApiClient.create(deviceName, deviceId);
-    loginRes = await authApi.login({
-      email,
-      password,
-      forced: true,
-    });
-    console.log("Auth access: ", loginRes.result);
-    client = new TalkClient();
-    response = await client.login({
-      accessToken: loginRes.result.accessToken,
-      refreshToken: loginRes.result.refreshToken,
-      deviceUUID: loginRes.result.deviceUUID,
-    });
-    console.log(response);
+    if (!lastTryResult) {
+      authApi = await AuthApiClient.create(deviceName, deviceId);
+      loginRes = await authApi.login({
+        email,
+        password,
+        forced: true,
+      });
+      client = new TalkClient();
+      response = await client.login({
+        accessToken: loginRes.result.accessToken,
+        refreshToken: loginRes.result.refreshToken,
+        deviceUUID: loginRes.result.deviceUUID,
+      });
+      store.setLastTry(email, loginRes);
+    } else {
+      client = new TalkClient();
+      response = await client.login({
+        accessToken: lastTryResult.result.accessToken,
+        refreshToken: lastTryResult.result.refreshToken,
+        deviceUUID: lastTryResult.result.deviceUUID,
+      });
+    }
     if (!response.success) {
-      console.log("response: ", response);
+      console.log(response);
       res.json({
         error: response.status,
         message: "Failed to login",
       });
     } else {
+      if (lastTryResults?.result?.accessToken) {
+        loginRes = lastTryResults;
+      }
+      store.setClient(email, client);
       const allList = client.channelList.all();
       let chatList = {};
       let messages = {};
@@ -130,7 +142,9 @@ router.post("/", async (req, res) => {
         storeChatList[nickname] = item;
       }
       store.setClient(email, client);
-      console.log(`Login Success`);
+      console.log(`Login Success: `);
+      console.log(`loginRes: `, loginRes);
+      console.log(`lastTryResult: `, lastTryResult);
       res.json({
         email,
         loggedInUserId,
@@ -142,6 +156,7 @@ router.post("/", async (req, res) => {
         largestTimeStamp,
         biggestChatLog,
       });
+      store.setLastTry(email, null);
       store.addChatList(email, storeChatList);
       client.on("chat_deleted", (p1, p2) => {
         console.log("chat_deleted p1: ", p1);

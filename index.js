@@ -81,6 +81,7 @@ wss.on("connection", function connection(ws) {
     const { key, value } = JSON.parse(message);
     if (key === "setEmail") {
       store.setConnection(value, ws);
+      ws.email = value;
     } else if (key === "newMessage") {
       const { email, message, receiver } = value;
       const client = store.getClient(email);
@@ -182,6 +183,12 @@ wss.on("connection", function connection(ws) {
         }
       }
     }
+  });
+  ws.on("close", () => {
+    const client = store.getClient(ws.email);
+    client.close();
+    console.log(console.log(`Client closed for ${ws.email}`));
+    store.setLastTry(ws.email, null);
   });
   ws.send("something");
 });

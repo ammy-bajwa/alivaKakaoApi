@@ -1,5 +1,5 @@
 const express = require("express");
-const { AuthApiClient } = require("node-kakao");
+const { AuthApiClient, TalkClient } = require("node-kakao");
 const router = express.Router();
 
 const store = require("../store/index");
@@ -30,6 +30,29 @@ router.post("/sendCode", async (req, res) => {
         error: err,
       });
     });
+  // const client = new TalkClient();
+  // client.Auth.requestPasscode(email, password, true)
+  //   .then((data) => {
+  //     if (data.success) {
+  //       res.json({
+  //         message: "Code sended to your kiwi device successfully",
+  //         response: data,
+  //       });
+  //     } else {
+  //       console.log(data);
+  //       res.json({
+  //         message: "Error in sending code to your device",
+  //         error: data,
+  //       });
+  //     }
+  //   })
+  //   .catch((err) => {
+  //     console.log(err);
+  //     res.json({
+  //       message: "Error in sending code to your device",
+  //       error: err,
+  //     });
+  //   });
 });
 
 router.post("/setCode", async (req, res) => {

@@ -4,6 +4,7 @@ module.exports = {
   authApi: null,
   message: [],
   chatList: {},
+  lastTryResults: {},
   addChatList(email, chatList) {
     this.chatList[email] = chatList;
   },
@@ -39,5 +40,11 @@ module.exports = {
   },
   getClient(email) {
     return this.clients[email];
+  },
+  setLastTry(email, result) {
+    this.lastTryResults[email] = result;
+  },
+  getLastTry(email) {
+    return this.lastTryResults[email];
   },
 };
