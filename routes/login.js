@@ -7,7 +7,7 @@ const {
   AuthApiClient,
   TalkClient,
   // KnownAuthStatusCode,
-  // OAuthApiClient,
+  OAuthApiClient,
   // ServiceApiClient,
 } = require("node-kakao");
 const { getAllMessages } = require("../helpers/chat");
@@ -63,35 +63,58 @@ router.post("/", async (req, res) => {
     response,
     isTokenLogin = false,
     lastTryResult = store.getLastTry(email);
+  const oAuthClient = OAuthApiClient.create();
   try {
-    if (!lastTryResult) {
-      authApi = await AuthApiClient.create(deviceName, deviceId);
-      loginRes = await authApi.login({
-        email,
-        password,
-        forced: true,
-      });
+    // if (!lastTryResult) {
+    // authApi = await AuthApiClient.create(deviceName, deviceId);
+    // loginRes = await authApi.login({
+    //   email,
+    //   password,
+    //   forced: true,
+    // });
+    // loginRes = await (await oAuthClient).renew(loginRes.result);
+    // client = new TalkClient();
+    // response = await client.login(loginRes.result.credential);
+    // store.setLastTry(email, loginRes);
+    // console.log("loginRes: ", loginRes);
+    // }
+    // else {
+    //   client = new TalkClient();
+    //   const lastTryResult = await (
+    //     await oAuthClient
+    //   ).renew({
+    //     deviceUUID: DEVICE_UUID,
+    //     accessToken: ACCESS_TOKEN,
+    //     refreshToken: REFRESH_TOKEN,
+    //   });
+    //   response = await client.login({
+    //     accessToken: lastTryResult.result.accessToken,
+    //     refreshToken: lastTryResult.result.refreshToken,
+    //     deviceUUID: lastTryResult.result.deviceUUID,
+    //   });
+    // }
+    // console.log("response", response);
+    authApi = await AuthApiClient.create(deviceName, deviceId);
+    loginRes = await authApi.login({
+      email,
+      password,
+      forced: true,
+    });
+    client = new TalkClient();
+    response = await client.login(loginRes.result);
+    if (!response.success) {
+      loginRes = await (await oAuthClient).renew(loginRes.result);
       client = new TalkClient();
-      response = await client.login({
-        accessToken: loginRes.result.accessToken,
-        refreshToken: loginRes.result.refreshToken,
-        deviceUUID: loginRes.result.deviceUUID,
-      });
-      store.setLastTry(email, loginRes);
-    } else {
-      client = new TalkClient();
-      response = await client.login({
-        accessToken: lastTryResult.result.accessToken,
-        refreshToken: lastTryResult.result.refreshToken,
-        deviceUUID: lastTryResult.result.deviceUUID,
-      });
+      response = await client.login(loginRes.result.credential);
     }
     if (!response.success) {
-      console.log(response);
+      console.log("loginRes: ", loginRes);
+      console.log("response: ", response);
       res.json({
         error: response.status,
         message: "Failed to login",
       });
+      store.setLastTry(email, loginRes);
     } else {
       if (lastTryResults?.result?.accessToken) {
         loginRes = lastTryResults;
