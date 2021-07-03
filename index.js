@@ -101,7 +101,7 @@ wss.on("connection", function connection(ws) {
             attachment: {},
             logId: parseInt(logId),
             receiverUser,
-            sendAt,
+            sendAt: new Date().getTime(),
           };
           ws.send(JSON.stringify(newMessage));
           console.log("Message sended successfully: ", sendAt);
