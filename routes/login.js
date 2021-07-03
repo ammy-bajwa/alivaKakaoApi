@@ -19,9 +19,7 @@ router.post("/logout", async (req, res) => {
   const client = store.getClient(email);
   try {
     await client.close();
-    console.log(`Client before close ${client.logon}`);
     console.log(`Client closed for ${email}`);
-    console.log(`Client after close ${client.logon}`);
     res.json({
       success: true,
     });

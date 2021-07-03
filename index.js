@@ -185,10 +185,14 @@ wss.on("connection", function connection(ws) {
     }
   });
   ws.on("close", () => {
-    const client = store.getClient(ws.email);
-    client.close();
-    console.log(console.log(`Client closed for ${ws.email}`));
-    store.setLastTry(ws.email, null);
+    try {
+      const client = store.getClient(ws.email);
+      client.close();
+      console.log(console.log(`Client closed for ${ws.email}`));
+      store.setLastTry(ws.email, null);
+    } catch (error) {
+      console.log("Already closed: ", error.message);
+    }
   });
   ws.send("something");
 });
