@@ -101,6 +101,14 @@ const getAllMessages = async (
                 const imgBase64 = await downloadFile(imgUrl);
                 receivedMessageObj.attachment.urlsBase64.push(imgBase64);
               }
+            } else if (
+              receivedMessageObj.text === "voice note" &&
+              receivedMessageObj.attachment?.url
+            ) {
+              const audioBase64 = await downloadFile(
+                receivedMessageObj.attachment.url
+              );
+              receivedMessageObj.attachment.audioBase64 = audioBase64;
             }
             const msgObj = {
               text: receivedMessageObj.text,
