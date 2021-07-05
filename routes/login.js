@@ -1,31 +1,22 @@
 const express = require("express");
+const { AuthApiClient, TalkClient, OAuthApiClient } = require("node-kakao");
 const router = express.Router();
 
 const store = require("../store/index");
-
-const {
-  AuthApiClient,
-  TalkClient,
-  // KnownAuthStatusCode,
-  OAuthApiClient,
-  // ServiceApiClient,
-} = require("node-kakao");
 const { getAllMessages } = require("../helpers/chat");
-// const { causeDelay } = require("../helpers/delay");
-const { lastTryResults } = require("../store/index");
 
 router.post("/logout", async (req, res) => {
   const { email } = req.body;
   const client = store.getClient(email);
   try {
     await client.close();
-    console.log(`Client closed for ${email}`);
     res.json({
       success: true,
     });
+    console.log(`Client closed for ${email}`);
   } catch (error) {
     res.json({
-      success: true,
+      success: false,
     });
   }
 });
@@ -35,122 +26,74 @@ router.post("/logout", async (req, res) => {
 //   const { accessToken, refreshToken, deviceId, deviceName } = req.body;
 //   const authApi = await AuthApiClient.create(deviceName, deviceId);
 //   store.setAuthApi(authApi);
-//   const loginRes = await authApi.login({
+//   const authClientResponse = await authApi.login({
 //     deviceUUID: deviceId,
 //     accessToken: accessToken,
 //     refreshToken: refreshToken,
 //   });
-//   console.log("loginRes: ", loginRes, KnownAuthStatusCode);
+//   console.log("authClientResponse: ", authClientResponse, KnownAuthStatusCode);
 //   res.send("ok");
 // });
 
 router.post("/", async (req, res) => {
-  const {
-    email,
-    password,
-    deviceName,
-    deviceId,
-    lastMessageTimeStamp,
-    latestLogId,
-    accessToken,
-    refreshToken,
-  } = req.body;
-  let authApi,
-    loginRes,
-    client,
-    response,
-    isTokenLogin = false,
-    lastTryResult = store.getLastTry(email);
-  const oAuthClient = OAuthApiClient.create();
+  const { email, password, deviceName, deviceId, latestLogId } = req.body;
   try {
-    // if (!lastTryResult) {
-    // authApi = await AuthApiClient.create(deviceName, deviceId);
-    // loginRes = await authApi.login({
-    //   email,
-    //   password,
-    //   forced: true,
-    // });
-    // loginRes = await (await oAuthClient).renew(loginRes.result);
-    // client = new TalkClient();
-    // response = await client.login(loginRes.result.credential);
-    // store.setLastTry(email, loginRes);
-    // console.log("loginRes: ", loginRes);
-    // }
-    // else {
-    //   client = new TalkClient();
-    //   const lastTryResult = await (
-    //     await oAuthClient
-    //   ).renew({
-    //     deviceUUID: DEVICE_UUID,
-    //     accessToken: ACCESS_TOKEN,
-    //     refreshToken: REFRESH_TOKEN,
-    //   });
-    //   response = await client.login({
-    //     accessToken: lastTryResult.result.accessToken,
-    //     refreshToken: lastTryResult.result.refreshToken,
-    //     deviceUUID: lastTryResult.result.deviceUUID,
-    //   });
-    // }
-    // console.log("response", response);
-    authApi = await AuthApiClient.create(deviceName, deviceId);
-    loginRes = await authApi.login({
+    const userLoginForm = {
       email,
       password,
       forced: true,
-    });
-    client = new TalkClient();
-    response = await client.login(loginRes.result);
-    if (!response.success) {
-      loginRes = await (await oAuthClient).renew(loginRes.result);
-      client = new TalkClient();
-      response = await client.login(loginRes.result.credential);
-    }
-    if (!response.success) {
-      console.log("loginRes: ", loginRes);
-      console.log("response: ", response);
+    };
+    const oAuthClient = OAuthApiClient.create();
+    const authClient = await AuthApiClient.create(deviceName, deviceId);
+    let authClientResponse = await authClient.login(userLoginForm);
+    if (!authClientResponse.success) {
       res.json({
-        error: response.status,
+        error: authClientResponse.status,
         message: "Failed to login",
       });
-      store.setLastTry(email, loginRes);
+      return;
+    }
+    const talkClient = new TalkClient();
+    let talkClientResponse = await talkClient.login(authClientResponse.result);
+    if (!talkClientResponse.success) {
+      authClientResponse = await (
+        await oAuthClient
+      ).renew(authClientResponse.result);
+      talkClient = new TalkClient();
+      talkClientResponse = await talkClient.login(
+        authClientResponse.result.credential
+      );
+    }
+    if (!talkClientResponse.success) {
+      res.json({
+        error: talkClientResponse.status,
+        message: "Failed to login",
+      });
+      store.setLastTry(email, authClientResponse);
     } else {
-      if (lastTryResults?.result?.accessToken) {
-        loginRes = lastTryResults;
-      }
-      store.setClient(email, client);
-      const allList = client.channelList.all();
+      store.setClient(email, talkClient);
+      const allList = talkClient.channelList.all();
       let chatList = {};
-      let messages = {};
-      let storeChatList = {};
-      const messageStore = [];
-      const loggedInUserId = parseInt(response.result.userId);
-      let largestTimeStamp = lastMessageTimeStamp;
+      const loggedInUserId = parseInt(talkClientResponse.result.userId);
       let biggestChatLog = latestLogId;
       for (const item of allList) {
         const { displayUserList, lastChatLogId, newChatCount } = item.info;
         const { nickname, userId } = displayUserList[0];
         const currentUserId = parseInt(userId);
-        messages[nickname] = {
-          userId: currentUserId,
-          messages: [],
-        };
         let itemChat = [];
-        if (parseInt(lastChatLogId) > latestLogId) {
-          const { newMessages, latestTimeStamp } = await getAllMessages(
+        const lastChatLogIdInt = parseInt(lastChatLogId);
+        if (lastChatLogIdInt > latestLogId) {
+          const { newMessages } = await getAllMessages(
             item,
             lastChatLogId,
             latestLogId,
-            client.clientUser.userId,
+            talkClient.clientUser.userId,
             email,
-            nickname,
-            lastMessageTimeStamp
+            nickname
           );
           itemChat = newMessages;
-          if (latestTimeStamp > largestTimeStamp) {
-            largestTimeStamp = latestTimeStamp;
-          }
-          if (parseInt(lastChatLogId) > biggestChatLog) {
-            biggestChatLog = parseInt(lastChatLogId);
+          if (lastChatLogIdInt > biggestChatLog) {
+            biggestChatLog = lastChatLogIdInt;
           }
         }
         chatList[nickname] = {
@@ -158,35 +101,11 @@ router.post("/", async (req, res) => {
           messages: itemChat,
           intId: currentUserId,
           newChatCount,
-          lastChatLogId: parseInt(lastChatLogId),
+          lastChatLogId: lastChatLogIdInt,
         };
-        storeChatList[nickname] = item;
       }
-      store.setClient(email, client);
-      console.log(`Login Success: `);
-      console.log(`loginRes: `, loginRes);
-      console.log(`lastTryResult: `, lastTryResult);
-      if (!loginRes) {
-        loginRes = lastTryResult;
-      }
-      res.json({
-        email,
-        loggedInUserId,
-        accessToken: loginRes.result.accessToken,
-        refreshToken: loginRes.result.refreshToken,
-        chatList,
-        messageStore,
-        messages,
-        largestTimeStamp,
-        biggestChatLog,
-      });
-      store.setLastTry(email, null);
-      store.addChatList(email, storeChatList);
-      client.on("chat_deleted", (p1, p2) => {
-        console.log("chat_deleted p1: ", p1);
-        console.log("chat_deleted p2: ", p2);
-      });
-      client.on("chat", (data, channel) => {
+      store.setClient(email, talkClient);
+      talkClient.on("chat", (data, channel) => {
         console.log("Chat called");
         const sender = data.getSenderInfo(channel);
         if (!sender) {
@@ -233,6 +152,15 @@ router.post("/", async (req, res) => {
           ws.send(JSON.stringify(messageData));
         }
       });
+      res.json({
+        email,
+        loggedInUserId,
+        accessToken: authClientResponse.result.accessToken,
+        refreshToken: authClientResponse.result.refreshToken,
+        chatList,
+        biggestChatLog,
+      });
+      console.log(`Login Success: `);
     }
   } catch (error) {
     console.error(error);
