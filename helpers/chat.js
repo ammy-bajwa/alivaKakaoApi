@@ -130,13 +130,3 @@ const getAllMessages = async (
 };
 
 module.exports = { getAllMessages };
-
-// const myFunDesign = async (params) => {
-//     const myWorkingPromise = new Promise(async (resolve, reject) => {
-//       try {
-//         resolve(true);
-//       } catch (error) {
-//         reject(error);
-//       }
-//       return await myWorkingPromise;
-//     });
