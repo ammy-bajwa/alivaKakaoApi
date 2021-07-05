@@ -1,13 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { Long } = require("node-kakao");
 const { getAllMessages } = require("../helpers/chat");
 
 const store = require("../store/index");
 
 router.post("/", async (req, res) => {
-  const { email, nickNameToGetChat, lastMessageTimeStamp, startChatLogId } =
-    req.body;
+  const { email, nickNameToGetChat, startChatLogId } = req.body;
   const client = store.getClient(email);
   const allList = client.channelList.all();
   let currentUserId = "",
@@ -24,14 +22,13 @@ router.post("/", async (req, res) => {
         console.error(error);
       }
       if (parseInt(lastChatLogId) > startChatLogId) {
-        const { newMessages, latestTimeStamp } = await getAllMessages(
+        const { newMessages } = await getAllMessages(
           item,
           lastChatLogId,
           startChatLogId,
           client.clientUser.userId,
           email,
-          nickname,
-          lastMessageTimeStamp
+          nickname
         );
         messageStore = newMessages;
         console.info("messageStore routes------", messageStore.length);
@@ -41,7 +38,6 @@ router.post("/", async (req, res) => {
       break;
     }
   }
-  // console.log("messageStore: ", messageStore);
   res.json({
     data: { userId: currentUserId, messages: messageStore },
     success: true,

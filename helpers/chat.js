@@ -18,13 +18,11 @@ const getAllMessages = async (
   startChatLogId,
   clientUserId,
   email,
-  nickname,
-  lastMessageTimeStamp = 0
+  nickname
 ) => {
   const myWorkingPromise = new Promise(async (resolve, reject) => {
     try {
-      let allMessages,
-        latestTimeStamp = lastMessageTimeStamp;
+      let allMessages;
       if (startChatLogId > 0) {
         allMessages = await item.syncChatList(
           lastChatLogId,
@@ -118,17 +116,12 @@ const getAllMessages = async (
               sendAt: receivedMessageObj.sendAt,
               logId: parseInt(receivedMessageObj.logId),
             };
-            if (receivedMessageObj.sendAt > lastMessageTimeStamp) {
-              messageStore.push(msgObj);
-            }
-            if (receivedMessageObj.sendAt > latestTimeStamp) {
-              latestTimeStamp = receivedMessageObj.sendAt;
-            }
+            messageStore.push(msgObj);
           }
         }
       }
       console.info("messageStore helper------", messageStore.length);
-      resolve({ newMessages: messageStore, latestTimeStamp });
+      resolve({ newMessages: messageStore });
     } catch (error) {
       reject(error);
     }
