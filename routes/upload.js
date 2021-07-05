@@ -16,7 +16,6 @@ var upload = multer({ storage: storage });
 
 router.post("/", upload.single("myFile"), async (req, res) => {
   const file = req.file;
-  console.log(file);
   res.json({
     success: true,
     fileName: file.originalname,
