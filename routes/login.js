@@ -3,7 +3,7 @@ const { AuthApiClient, TalkClient, OAuthApiClient } = require("node-kakao");
 const router = express.Router();
 
 const store = require("../store/index");
-const { getAllMessages } = require("../helpers/chat");
+const { chatListHandler } = require("../helpers/login/chatListHandler");
 
 router.post("/logout", async (req, res) => {
   const { email } = req.body;
@@ -75,35 +75,8 @@ router.post("/", async (req, res) => {
       const allList = talkClient.channelList.all();
       let chatList = {};
       const loggedInUserId = parseInt(talkClientResponse.result.userId);
-      let biggestChatLog = latestLogId;
-      for (const item of allList) {
-        const { displayUserList, lastChatLogId, newChatCount } = item.info;
-        const { nickname, userId } = displayUserList[0];
-        const currentUserId = parseInt(userId);
-        let itemChat = [];
-        const lastChatLogIdInt = parseInt(lastChatLogId);
-        if (lastChatLogIdInt > latestLogId) {
-          const { newMessages } = await getAllMessages(
-            item,
-            lastChatLogId,
-            latestLogId,
-            talkClient.clientUser.userId,
-            email,
-            nickname
-          );
-          itemChat = newMessages;
-          if (lastChatLogIdInt > biggestChatLog) {
-            biggestChatLog = lastChatLogIdInt;
-          }
-        }
-        chatList[nickname] = {
-          ...item.info,
-          messages: itemChat,
-          intId: currentUserId,
-          newChatCount,
-          lastChatLogId: lastChatLogIdInt,
-        };
-      }
+      const { chatList: chatListWithMessages, biggestChatLog } =
+        await chatListHandler(talkClient, allList, email, latestLogId);
       store.setClient(email, talkClient);
       talkClient.on("chat", (data, channel) => {
         console.log("Chat called");
@@ -157,7 +130,7 @@ router.post("/", async (req, res) => {
         loggedInUserId,
         accessToken: authClientResponse.result.accessToken,
         refreshToken: authClientResponse.result.refreshToken,
-        chatList,
+        chatList: chatListWithMessages,
         biggestChatLog,
       });
       console.log(`Login Success: `);
