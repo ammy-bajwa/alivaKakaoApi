@@ -42,7 +42,7 @@ const getAllMessages = async (
           const { result } = value;
           for (let index = 0; index < result.length; index++) {
             const receivedMessageObj = result[index];
-
+            console.log("receivedMessageObj: ", receivedMessageObj);
             const nextMessage = result[index + 1];
             const isMeSender =
               parseInt(receivedMessageObj.sender.userId) ===
@@ -80,6 +80,27 @@ const getAllMessages = async (
               receivedMessageObj.attachment.urlBase64 = await downloadFile(
                 receivedMessageObj.attachment.url
               );
+            } else if (
+              receivedMessageObj?.attachment?.thumbnailUrls &&
+              receivedMessageObj?.attachment?.imageUrls
+            ) {
+              receivedMessageObj.attachment.thumbnailUrlsBase64 = [];
+              receivedMessageObj.attachment.urlsBase64 = [];
+              for (
+                let index = 0;
+                index < receivedMessageObj.attachment.thumbnailUrls.length;
+                index++
+              ) {
+                const thumbnailUrl =
+                  receivedMessageObj.attachment.thumbnailUrls[index];
+                const imgUrl = receivedMessageObj.attachment.imageUrls[index];
+                const thumbnailBase64 = await downloadFile(thumbnailUrl);
+                receivedMessageObj.attachment.thumbnailUrlsBase64.push(
+                  thumbnailBase64
+                );
+                const imgBase64 = await downloadFile(imgUrl);
+                receivedMessageObj.attachment.urlsBase64.push(imgBase64);
+              }
             }
             const msgObj = {
               text: receivedMessageObj.text,
