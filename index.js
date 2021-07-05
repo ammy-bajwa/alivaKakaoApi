@@ -2,7 +2,8 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const WebSocket = require("ws");
-const multer = require("multer");
+const { readFileSync } = require("fs");
+
 
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -14,20 +15,8 @@ const Device = require("./routes/device");
 const Chat = require("./routes/chat");
 const Contact = require("./routes/contact");
 const Media = require("./routes/media");
+const UploadFile = require("./routes/upload");
 const store = require("./store");
-const { readFileSync } = require("fs");
-
-// SET STORAGE
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-var upload = multer({ storage: storage });
 
 app.use(cors());
 
@@ -44,17 +33,7 @@ app.use("/device", Device);
 app.use("/chat", Chat);
 app.use("/contact", Contact);
 app.use("/media", Media);
-
-app.post("/uploadfile", upload.single("myFile"), (req, res, next) => {
-  console.log("Route hit");
-  const file = req.file;
-  console.log(file);
-  res.json({
-    success: true,
-    fileName: file.originalname,
-    path: file.path,
-  });
-});
+app.use("/uploadFile", UploadFile);
 
 app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "build", "index.html"));

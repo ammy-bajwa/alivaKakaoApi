@@ -50,14 +50,13 @@ const getAllMessages = async (
             const senderName = isMeSender ? email : nickname;
             if (nextMessage) {
               const isDeletedSelf = checkIfDeletedSign(receivedMessageObj);
-              // let isDeletedNext = checkIfDeletedSign(nextMessage);
-              // if (isDeletedNext) {
-              //   continue;
-              // } else
-              if (isDeletedSelf) {
+              let isDeletedNext = checkIfDeletedSign(nextMessage);
+              if (isDeletedNext) {
+                continue;
+              } else if (isDeletedSelf) {
                 console.log(receivedMessageObj);
                 const messageObject = {
-                  text: "This is deleted message sign",
+                  text: "This message is deleted",
                   receiverUserName: isMeSender ? nickname : email,
                   attachment: receivedMessageObj.attachment,
                   received: true,

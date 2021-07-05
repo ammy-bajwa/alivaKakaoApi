@@ -11,7 +11,7 @@ const {
   // ServiceApiClient,
 } = require("node-kakao");
 const { getAllMessages } = require("../helpers/chat");
-const { causeDelay } = require("../helpers/delay");
+// const { causeDelay } = require("../helpers/delay");
 const { lastTryResults } = require("../store/index");
 
 router.post("/logout", async (req, res) => {
