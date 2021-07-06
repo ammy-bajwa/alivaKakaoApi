@@ -10,7 +10,9 @@
     "multer": "^1.4.2",
     "node-fetch": "^2.6.1",
     "node-kakao": "^4.3.0",
-    "ws": "^7.4.6"
+    "nodemon": "^2.0.9",
+    "ws": "^7.4.6",
+    "yarn": "^1.22.10"
   },
   "scripts": {
     "start": "node index",

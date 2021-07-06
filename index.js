@@ -8,15 +8,15 @@ const cors = require("cors");
 
 const port = process.env.PORT || 4030;
 
-const Login = require("./routes/login");
-const Device = require("./routes/device");
-const Chat = require("./routes/chat");
-const Contact = require("./routes/contact");
-const Media = require("./routes/media");
-const UploadFile = require("./routes/upload");
-const store = require("./store");
-const { onMessageHandler } = require("./socket/onMessage");
-const { onCloseHandler } = require("./socket/onClose");
+const Login = require("./src/routes/login");
+const Device = require("./src/routes/device");
+const Chat = require("./src/routes/chat");
+const Contact = require("./src/routes/contact");
+const Media = require("./src/routes/media");
+const UploadFile = require("./src/routes/upload");
+const store = require("./src/store");
+const { onMessageHandler } = require("./src/socket/onMessage");
+const { onCloseHandler } = require("./src/socket/onClose");
 
 app.use(cors());
 
