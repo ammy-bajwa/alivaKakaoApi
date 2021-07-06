@@ -21,9 +21,6 @@
     "build:dev": "tsc --watch --preserveWatchOutput",
     "dev": "concurrently \"npm:build:dev\" \"npm:start:dev\""
   },
-  "engines": {
-    "node": "14.x"
-  },
   "devDependencies": {
     "@types/express": "^4.17.12",
     "@types/node-fetch": "^2.5.10",

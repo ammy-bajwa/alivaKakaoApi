@@ -6,23 +6,21 @@ const router = express.Router();
 import { store } from "../store";
 import { chatListHandler } from "../helpers/login/chatListHandler";
 
-// const { chatListHandler } = require("../helpers/login/chatListHandler");
-
-// router.post("/logout", async (req, res) => {
-//   const { email } = req.body;
-//   const client = store.getClient(email);
-//   try {
-//     await client.close();
-//     res.json({
-//       success: true,
-//     });
-//     console.log(`Client closed for ${email}`);
-//   } catch (error) {
-//     res.json({
-//       success: false,
-//     });
-//   }
-// });
+router.post("/logout", async (req: any, res: any) => {
+  const { email } = req.body;
+  const client = store.getClient(email);
+  try {
+    await client.close();
+    res.json({
+      success: true,
+    });
+    console.log(`Client closed for ${email}`);
+  } catch (error) {
+    res.json({
+      success: false,
+    });
+  }
+});
 
 // router.post("/token", async (req, res) => {
 //   console.log("req.body: ", req.body);
@@ -61,9 +59,9 @@ router.post("/", async (req: any, res: any) => {
       authClientResponse.result
     );
     if (!talkClientResponse.success) {
-      authClientResponse = await (await oAuthClient).renew(
-        authClientResponse.result
-      );
+      authClientResponse = await (
+        await oAuthClient
+      ).renew(authClientResponse.result);
       talkClient = new TalkClient();
       talkClientResponse = await talkClient.login(
         authClientResponse.result.credential
@@ -79,13 +77,9 @@ router.post("/", async (req: any, res: any) => {
       store.setClient(email, talkClient);
       const allList = talkClient.channelList.all();
       const loggedInUserId = parseInt(talkClientResponse.result.userId);
-      const {
-        chatList: chatListWithMessages,
-        biggestChatLog,
-      }: any = await chatListHandler(talkClient, allList, email, latestLogId);
-      store.setClient(email, talkClient);
+      const { chatList: chatListWithMessages, biggestChatLog }: any =
+        await chatListHandler(talkClient, allList, email, latestLogId);
       talkClient.on("chat", (data: any, channel: any) => {
-        console.log("Chat called");
         const sender = data.getSenderInfo(channel);
         if (!sender) {
           return;
