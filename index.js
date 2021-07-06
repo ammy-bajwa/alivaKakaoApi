@@ -14,7 +14,6 @@ const Chat = require("./src/routes/chat");
 const Contact = require("./src/routes/contact");
 const Media = require("./src/routes/media");
 const UploadFile = require("./src/routes/upload");
-const store = require("./src/store");
 const { onMessageHandler } = require("./src/socket/onMessage");
 const { onCloseHandler } = require("./src/socket/onClose");
 
@@ -26,7 +25,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
-app.use(express.static("build"));
+app.use(express.static("client"));
 
 app.use("/login", Login);
 app.use("/device", Device);
@@ -36,7 +35,7 @@ app.use("/media", Media);
 app.use("/uploadFile", UploadFile);
 
 app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
+  res.sendFile(path.join(__dirname, "client", "index.html"));
 });
 
 const myServer = app.listen(port, () => {
