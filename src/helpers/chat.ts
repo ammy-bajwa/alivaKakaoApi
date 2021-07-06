@@ -1,7 +1,8 @@
-const { Long } = require("node-kakao");
-const { downloadFile } = require("./files");
+import { Long } from "node-kakao";
 
-const checkIfDeletedSign = (message) => {
+import { downloadFile } from "./files";
+
+const checkIfDeletedSign = (message: any) => {
   const check1 = message.text.includes("feedType");
   const check2 = message.text.includes("logId");
   const check3 = message.text.includes("hidden");
@@ -12,13 +13,13 @@ const checkIfDeletedSign = (message) => {
   return false;
 };
 
-const getAllMessages = async (
-  item,
-  lastChatLogId,
-  startChatLogId,
-  clientUserId,
-  email,
-  nickname
+export const getAllMessages = async (
+  item: any,
+  lastChatLogId: any,
+  startChatLogId: any,
+  clientUserId: any,
+  email: any,
+  nickname: any
 ) => {
   const myWorkingPromise = new Promise(async (resolve, reject) => {
     try {
@@ -31,7 +32,7 @@ const getAllMessages = async (
       } else {
         allMessages = await item.syncChatList(lastChatLogId);
       }
-      messageStore = [];
+      let messageStore = [];
       while (true) {
         const { value, done } = await allMessages.next();
         if (done) {
@@ -72,8 +73,9 @@ const getAllMessages = async (
               receivedMessageObj.attachment &&
               receivedMessageObj?.attachment?.thumbnailUrl
             ) {
-              receivedMessageObj.attachment.thumbnailUrlBase64 =
-                await downloadFile(receivedMessageObj.attachment.thumbnailUrl);
+              receivedMessageObj.attachment.thumbnailUrlBase64 = await downloadFile(
+                receivedMessageObj.attachment.thumbnailUrl
+              );
               receivedMessageObj.attachment.urlBase64 = await downloadFile(
                 receivedMessageObj.attachment.url
               );
@@ -128,5 +130,3 @@ const getAllMessages = async (
   });
   return await myWorkingPromise;
 };
-
-module.exports = { getAllMessages };

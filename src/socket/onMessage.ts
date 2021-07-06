@@ -1,11 +1,9 @@
-const {
-  newMessageFileHandler,
-} = require("../helpers/socket/newMessageFileHandler");
-const { newMessageHandler } = require("../helpers/socket/newMessageHandler");
+import { newMessageHandler } from "../helpers/socket/newMessageHandler";
+import { newMessageFileHandler } from "../helpers/socket/newMessageFileHandler";
 
-const store = require("../store");
+import { store } from "../store/index";
 
-const onMessageHandler = async function incoming(ws, message) {
+export const onMessageHandler = async function incoming(ws: any, message: any) {
   const { key, value } = JSON.parse(message);
   if (key === "setEmail") {
     store.setConnection(value, ws);
@@ -17,8 +15,4 @@ const onMessageHandler = async function incoming(ws, message) {
     const { email, filePath, receiver } = value;
     await newMessageFileHandler(ws, email, receiver, filePath);
   }
-};
-
-module.exports = {
-  onMessageHandler,
 };

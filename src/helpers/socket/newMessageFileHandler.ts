@@ -1,7 +1,16 @@
-const { readFileSync } = require("fs");
-const store = require("../../store");
+// const { readFileSync } = require("fs");
+// const store = require("../../store");
 
-const newMessageFileHandler = async (ws, email, receiver, filePath) => {
+import { readFileSync } from "fs";
+
+import { store } from "../../store/index";
+
+export const newMessageFileHandler = async (
+  ws: any,
+  email: any,
+  receiver: any,
+  filePath: any
+) => {
   const client = store.getClient(email);
   const allList = client.channelList.all();
   for (const item of allList) {
@@ -30,8 +39,4 @@ const newMessageFileHandler = async (ws, email, receiver, filePath) => {
       break;
     }
   }
-};
-
-module.exports = {
-  newMessageFileHandler,
 };

@@ -1,14 +1,14 @@
-const { getAllMessages } = require("../chat");
+import { getAllMessages } from "../chat";
 
-const chatListHandler = async (
-  talkClient,
-  allList,
-  email,
+export const chatListHandler = async (
+  talkClient: any,
+  allList: any,
+  email: any,
   biggestChatLog = 0
 ) => {
   const myTaskPromise = new Promise(async (resolve, reject) => {
     try {
-      const chatList = {};
+      const chatList: any = {};
       let innerBiggestChatLog = biggestChatLog;
       for (const item of allList) {
         const { displayUserList, lastChatLogId, newChatCount } = item.info;
@@ -17,7 +17,7 @@ const chatListHandler = async (
         let itemChat = [];
         const lastChatLogIdInt = parseInt(lastChatLogId);
         if (lastChatLogIdInt > biggestChatLog) {
-          const { newMessages } = await getAllMessages(
+          const { newMessages }: any = await getAllMessages(
             item,
             lastChatLogId,
             biggestChatLog,
@@ -45,8 +45,4 @@ const chatListHandler = async (
   });
 
   return await myTaskPromise;
-};
-
-module.exports = {
-  chatListHandler,
 };

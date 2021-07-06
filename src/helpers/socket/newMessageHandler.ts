@@ -1,6 +1,11 @@
-const store = require("../../store");
+import { store } from "../../store/index";
 
-const newMessageHandler = async (ws, email, message, receiver) => {
+export const newMessageHandler = async (
+  ws: any,
+  email: any,
+  message: any,
+  receiver: any
+) => {
   const client = store.getClient(email);
   const allList = client.channelList.all();
   for (const item of allList) {
@@ -26,5 +31,3 @@ const newMessageHandler = async (ws, email, message, receiver) => {
     }
   }
 };
-
-module.exports = { newMessageHandler };

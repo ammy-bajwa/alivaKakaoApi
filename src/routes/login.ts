@@ -1,25 +1,28 @@
-const express = require("express");
-const { AuthApiClient, TalkClient, OAuthApiClient } = require("node-kakao");
+import express from "express";
+import { AuthApiClient, TalkClient, OAuthApiClient } from "node-kakao";
+
 const router = express.Router();
 
-const store = require("../store/index");
-const { chatListHandler } = require("../helpers/login/chatListHandler");
+import { store } from "../store";
+import { chatListHandler } from "../helpers/login/chatListHandler";
 
-router.post("/logout", async (req, res) => {
-  const { email } = req.body;
-  const client = store.getClient(email);
-  try {
-    await client.close();
-    res.json({
-      success: true,
-    });
-    console.log(`Client closed for ${email}`);
-  } catch (error) {
-    res.json({
-      success: false,
-    });
-  }
-});
+// const { chatListHandler } = require("../helpers/login/chatListHandler");
+
+// router.post("/logout", async (req, res) => {
+//   const { email } = req.body;
+//   const client = store.getClient(email);
+//   try {
+//     await client.close();
+//     res.json({
+//       success: true,
+//     });
+//     console.log(`Client closed for ${email}`);
+//   } catch (error) {
+//     res.json({
+//       success: false,
+//     });
+//   }
+// });
 
 // router.post("/token", async (req, res) => {
 //   console.log("req.body: ", req.body);
@@ -35,7 +38,7 @@ router.post("/logout", async (req, res) => {
 //   res.send("ok");
 // });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res: any) => {
   const { email, password, deviceName, deviceId, latestLogId } = req.body;
   try {
     const userLoginForm = {
@@ -45,7 +48,7 @@ router.post("/", async (req, res) => {
     };
     const oAuthClient = OAuthApiClient.create();
     const authClient = await AuthApiClient.create(deviceName, deviceId);
-    let authClientResponse = await authClient.login(userLoginForm);
+    let authClientResponse: any = await authClient.login(userLoginForm);
     if (!authClientResponse.success) {
       res.json({
         error: authClientResponse.status,
@@ -53,12 +56,14 @@ router.post("/", async (req, res) => {
       });
       return;
     }
-    const talkClient = new TalkClient();
-    let talkClientResponse = await talkClient.login(authClientResponse.result);
+    let talkClient = new TalkClient();
+    let talkClientResponse: any = await talkClient.login(
+      authClientResponse.result
+    );
     if (!talkClientResponse.success) {
-      authClientResponse = await (
-        await oAuthClient
-      ).renew(authClientResponse.result);
+      authClientResponse = await (await oAuthClient).renew(
+        authClientResponse.result
+      );
       talkClient = new TalkClient();
       talkClientResponse = await talkClient.login(
         authClientResponse.result.credential
@@ -74,10 +79,12 @@ router.post("/", async (req, res) => {
       store.setClient(email, talkClient);
       const allList = talkClient.channelList.all();
       const loggedInUserId = parseInt(talkClientResponse.result.userId);
-      const { chatList: chatListWithMessages, biggestChatLog } =
-        await chatListHandler(talkClient, allList, email, latestLogId);
+      const {
+        chatList: chatListWithMessages,
+        biggestChatLog,
+      }: any = await chatListHandler(talkClient, allList, email, latestLogId);
       store.setClient(email, talkClient);
-      talkClient.on("chat", (data, channel) => {
+      talkClient.on("chat", (data: any, channel: any) => {
         console.log("Chat called");
         const sender = data.getSenderInfo(channel);
         if (!sender) {
@@ -94,8 +101,8 @@ router.post("/", async (req, res) => {
           } = data;
           const senderIntUserId = parseInt(userId);
           const info = channel.getAllUserInfo();
-          let receiverUser = {};
-          let senderUser = {};
+          let receiverUser: any = {};
+          let senderUser: any = {};
           try {
             for (const item of info) {
               const { userId } = item;
@@ -144,4 +151,4 @@ router.post("/", async (req, res) => {
 });
 
 //export this router to use in our server.js
-module.exports = router;
+export default router;

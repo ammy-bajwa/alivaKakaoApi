@@ -1,6 +1,6 @@
-const store = require("../store");
+import { store } from "../store";
 
-const onCloseHandler = (ws) => {
+export const onCloseHandler = (ws: any) => {
   try {
     const client = store.getClient(ws.email);
     client.close();
@@ -10,5 +10,3 @@ const onCloseHandler = (ws) => {
     console.log("Already closed: ", error.message);
   }
 };
-
-module.exports = { onCloseHandler };
