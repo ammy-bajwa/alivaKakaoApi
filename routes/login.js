@@ -73,7 +73,6 @@ router.post("/", async (req, res) => {
     } else {
       store.setClient(email, talkClient);
       const allList = talkClient.channelList.all();
-      let chatList = {};
       const loggedInUserId = parseInt(talkClientResponse.result.userId);
       const { chatList: chatListWithMessages, biggestChatLog } =
         await chatListHandler(talkClient, allList, email, latestLogId);

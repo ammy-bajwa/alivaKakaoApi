@@ -1,6 +1,11 @@
 const { getAllMessages } = require("../chat");
 
-const chatListHandler = async (talkClient, allList, email, biggestChatLog) => {
+const chatListHandler = async (
+  talkClient,
+  allList,
+  email,
+  biggestChatLog = 0
+) => {
   const myTaskPromise = new Promise(async (resolve, reject) => {
     try {
       const chatList = {};
@@ -11,7 +16,7 @@ const chatListHandler = async (talkClient, allList, email, biggestChatLog) => {
         const currentUserId = parseInt(userId);
         let itemChat = [];
         const lastChatLogIdInt = parseInt(lastChatLogId);
-        if (lastChatLogIdInt > innerBiggestChatLog) {
+        if (lastChatLogIdInt > biggestChatLog) {
           const { newMessages } = await getAllMessages(
             item,
             lastChatLogId,
