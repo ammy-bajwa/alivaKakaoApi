@@ -1,8 +1,10 @@
+import { TalkChannel, TalkClient } from "node-kakao";
+import { ChainedIterator } from "node-kakao/dist/util";
 import { getAllMessages } from "../chat";
 
 export const chatListHandler = async (
-  talkClient: any,
-  allList: any,
+  talkClient: TalkClient,
+  allList: ChainedIterator<TalkChannel>,
   email: any,
   biggestChatLog = 0
 ) => {
@@ -13,9 +15,9 @@ export const chatListHandler = async (
       for (const item of allList) {
         const { displayUserList, lastChatLogId, newChatCount } = item.info;
         const { nickname, userId } = displayUserList[0];
-        const currentUserId = parseInt(userId);
+        const currentUserId = parseInt(userId.toString());
         let itemChat = [];
-        const lastChatLogIdInt = parseInt(lastChatLogId);
+        const lastChatLogIdInt = parseInt(lastChatLogId.toString());
         if (lastChatLogIdInt > biggestChatLog) {
           const { newMessages }: any = await getAllMessages(
             item,

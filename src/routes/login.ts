@@ -36,16 +36,28 @@ router.post("/logout", async (req: any, res: any) => {
 //   res.send("ok");
 // });
 
+interface LoginBodyType {
+  email: string;
+  password: string;
+  deviceName: string;
+  deviceId: string;
+  latestLogId: number;
+}
+
 router.post("/", async (req: any, res: any) => {
-  const { email, password, deviceName, deviceId, latestLogId } = req.body;
+  const { email, password, deviceName, deviceId, latestLogId }: LoginBodyType =
+    req.body;
   try {
     const userLoginForm = {
       email,
       password,
       forced: true,
     };
-    const oAuthClient = OAuthApiClient.create();
-    const authClient = await AuthApiClient.create(deviceName, deviceId);
+    const oAuthClient: OAuthApiClient = await OAuthApiClient.create();
+    const authClient: AuthApiClient = await AuthApiClient.create(
+      deviceName,
+      deviceId
+    );
     let authClientResponse: any = await authClient.login(userLoginForm);
     if (!authClientResponse.success) {
       res.json({
@@ -59,9 +71,7 @@ router.post("/", async (req: any, res: any) => {
       authClientResponse.result
     );
     if (!talkClientResponse.success) {
-      authClientResponse = await (
-        await oAuthClient
-      ).renew(authClientResponse.result);
+      authClientResponse = await oAuthClient.renew(authClientResponse.result);
       talkClient = new TalkClient();
       talkClientResponse = await talkClient.login(
         authClientResponse.result.credential
@@ -128,8 +138,12 @@ router.post("/", async (req: any, res: any) => {
       res.json({
         email,
         loggedInUserId,
-        accessToken: authClientResponse.result.accessToken,
-        refreshToken: authClientResponse.result.refreshToken,
+        accessToken:
+          authClientResponse.result?.accessToken ||
+          authClientResponse.result?.credential?.accessToken,
+        refreshToken:
+          authClientResponse.result?.refreshToken ||
+          authClientResponse.result?.credential?.refreshToken,
         chatList: chatListWithMessages,
         biggestChatLog,
       });
