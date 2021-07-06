@@ -15,7 +15,6 @@ router.post("/sendCode", async (req, res) => {
       if (data.success) {
         res.json({
           message: "Code sended to your kiwi device successfully",
-          response: data,
         });
       } else {
         res.json({
@@ -49,7 +48,6 @@ router.post("/setCode", async (req, res) => {
       } else {
         res.json({
           message: "Device registere on kiwi successfully",
-          response: data,
         });
       }
     })

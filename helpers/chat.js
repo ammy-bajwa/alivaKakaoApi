@@ -40,18 +40,18 @@ const getAllMessages = async (
           const { result } = value;
           for (let index = 0; index < result.length; index++) {
             const receivedMessageObj = result[index];
-            console.log("receivedMessageObj: ", receivedMessageObj);
             const nextMessage = result[index + 1];
             const isMeSender =
               parseInt(receivedMessageObj.sender.userId) ===
               parseInt(clientUserId);
             const senderName = isMeSender ? email : nickname;
             if (nextMessage) {
-              const isDeletedSelf = checkIfDeletedSign(receivedMessageObj);
-              let isDeletedNext = checkIfDeletedSign(nextMessage);
-              if (isDeletedNext) {
-                continue;
-              } else if (isDeletedSelf) {
+              // const isDeletedSelf = checkIfDeletedSign(receivedMessageObj);
+              // let isDeletedNext = checkIfDeletedSign(nextMessage);
+              // if (isDeletedNext) {
+              //   continue;
+              // } else
+              if (isDeletedSelf) {
                 console.log(receivedMessageObj);
                 const messageObject = {
                   text: "This message is deleted",
