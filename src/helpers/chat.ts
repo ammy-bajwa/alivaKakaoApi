@@ -42,6 +42,8 @@ export const getAllMessages = async (
             const { result } = value;
             for (let index = 0; index < result.length; index++) {
               const receivedMessageObj = result[index];
+              console.log(receivedMessageObj);
+
               const nextMessage = result[index + 1];
               const isMeSender =
                 parseInt(receivedMessageObj.sender.userId) ===
