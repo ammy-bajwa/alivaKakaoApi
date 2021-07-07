@@ -1,8 +1,15 @@
 import express from "express";
-import { AuthApiClient, TalkClient, OAuthApiClient } from "node-kakao";
+import {
+  AuthApiClient,
+  TalkClient,
+  OAuthApiClient,
+  TalkChatData,
+  TalkChannel,
+} from "node-kakao";
 
 import { store } from "../store";
 import { chatListHandler } from "../helpers/login/chatListHandler";
+import { onChatHandler } from "../helpers/login/onChatHandler";
 
 const router = express.Router();
 
@@ -89,52 +96,9 @@ router.post("/", async (req: any, res: any) => {
       const loggedInUserId = parseInt(talkClientResponse.result.userId);
       const { chatList: chatListWithMessages, biggestChatLog }: any =
         await chatListHandler(talkClient, allList, email, latestLogId);
-      talkClient.on("chat", (data: any, channel: any) => {
-        const sender = data.getSenderInfo(channel);
-        if (!sender) {
-          return;
-        } else {
-          const {
-            _chat: {
-              text,
-              sendAt,
-              attachment,
-              logId,
-              sender: { userId },
-            },
-          } = data;
-          const senderIntUserId = parseInt(userId);
-          const info = channel.getAllUserInfo();
-          let receiverUser: any = {};
-          let senderUser: any = {};
-          try {
-            for (const item of info) {
-              const { userId } = item;
-              const currentUserIntId = parseInt(userId);
-              if (senderIntUserId === currentUserIntId) {
-                senderUser = item;
-                senderUser.intId = currentUserIntId;
-              } else {
-                receiverUser = item;
-                receiverUser.intId = parseInt(userId);
-              }
-            }
-          } catch (error) {
-            console.error(error);
-          }
-          const messageData = {
-            key: "newMesssage",
-            text,
-            sender,
-            logId: parseInt(logId),
-            attachment,
-            receiverUser,
-            sendAt,
-          };
-          const ws = store.getConnection(email);
-          ws.send(JSON.stringify(messageData));
-        }
-      });
+      talkClient.on("chat", (data: TalkChatData, channel: TalkChannel) =>
+        onChatHandler(data, channel, email)
+      );
       res.json({
         email,
         loggedInUserId,
