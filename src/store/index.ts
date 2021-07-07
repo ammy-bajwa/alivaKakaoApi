@@ -1,3 +1,5 @@
+import { TalkClient } from "node-kakao";
+
 export const store: any = {
   connections: {},
   clients: {},
@@ -5,13 +7,13 @@ export const store: any = {
   message: [],
   chatList: {},
   lastTryResults: {},
-  addChatList(email: any, chatList: any) {
+  addChatList(email: string, chatList: any) {
     this.chatList[email] = chatList;
   },
-  getChatList(email: any) {
+  getChatList(email: string) {
     return this.chatList[email];
   },
-  removeChatList(email: any) {
+  removeChatList(email: string) {
     this.chatList[email] = null;
   },
   setConnection(id: any, ws: any) {
@@ -35,16 +37,16 @@ export const store: any = {
   getAuthApi() {
     return this.authApi;
   },
-  setClient(email: any, clientInstance: any) {
+  setClient(email: string, clientInstance: TalkClient) {
     this.clients[email] = clientInstance;
   },
-  getClient(email: any) {
+  getClient(email: string) {
     return this.clients[email];
   },
-  setLastTry(email: any, result: any) {
+  setLastTry(email: string, result: any) {
     this.lastTryResults[email] = result;
   },
-  getLastTry(email: any) {
+  getLastTry(email: string) {
     return this.lastTryResults[email];
   },
 };

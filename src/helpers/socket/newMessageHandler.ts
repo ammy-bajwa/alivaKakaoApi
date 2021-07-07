@@ -2,9 +2,9 @@ import { store } from "../../store/index";
 
 export const newMessageHandler = async (
   ws: any,
-  email: any,
-  message: any,
-  receiver: any
+  email: string,
+  message: string,
+  receiver: string
 ) => {
   const client = store.getClient(email);
   const allList = client.channelList.all();

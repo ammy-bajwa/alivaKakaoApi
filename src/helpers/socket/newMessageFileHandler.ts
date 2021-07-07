@@ -7,9 +7,9 @@ import { store } from "../../store/index";
 
 export const newMessageFileHandler = async (
   ws: any,
-  email: any,
-  receiver: any,
-  filePath: any
+  email: string,
+  receiver: string,
+  filePath: string
 ) => {
   const client = store.getClient(email);
   const allList = client.channelList.all();

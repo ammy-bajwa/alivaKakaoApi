@@ -1,14 +1,13 @@
-// const fetch = require("node-fetch");
-import fetch from "node-fetch";
+import fetch, { Response } from "node-fetch";
 
-export const convertFileToBase64 = async (file: any) => {
+export const convertFileToBase64 = async (file: Blob) => {
   const base64Promise = new Promise((resolve, reject) => {
     try {
       var reader = new FileReader();
-      reader.onload = function (e: any) {
-        // The file's text will be printed here
-        console.log(e.target.result);
-        resolve(e.target.result);
+      reader.onload = function (e: ProgressEvent<FileReader>) {
+        if (e.target) {
+          resolve(e.target.result);
+        }
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -19,17 +18,19 @@ export const convertFileToBase64 = async (file: any) => {
   return await base64Promise;
 };
 
-export const downloadFile = async (url: any) => {
-  const myWorkingPromise = new Promise(async (resolve, reject) => {
-    try {
-      fetch(url)
-        .then((res: any) => res.buffer())
-        .then(async (buffer: any) => {
-          resolve(buffer.toString("base64"));
-        });
-    } catch (error) {
-      reject(error);
+export const downloadFile = async (url: string) => {
+  const myWorkingPromise = new Promise(
+    async (resolve: (value: string) => void, reject) => {
+      try {
+        fetch(url)
+          .then((res: Response) => res.buffer())
+          .then(async (buffer: Buffer) => {
+            resolve(buffer.toString("base64"));
+          });
+      } catch (error) {
+        reject(error);
+      }
     }
-  });
+  );
   return await myWorkingPromise;
 };

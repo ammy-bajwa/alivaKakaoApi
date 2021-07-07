@@ -16,17 +16,18 @@ export const chatListHandler = async (
         const { displayUserList, lastChatLogId, newChatCount } = item.info;
         const { nickname, userId } = displayUserList[0];
         const currentUserId = parseInt(userId.toString());
-        let itemChat = [];
+        let itemChat: object[] = [] as object[];
         const lastChatLogIdInt = parseInt(lastChatLogId.toString());
         if (lastChatLogIdInt > biggestChatLog) {
-          const { newMessages }: any = await getAllMessages(
-            item,
-            lastChatLogId,
-            biggestChatLog,
-            talkClient.clientUser.userId,
-            email,
-            nickname
-          );
+          const { newMessages }: { newMessages: object[] } =
+            await getAllMessages(
+              item,
+              lastChatLogId,
+              biggestChatLog,
+              talkClient.clientUser.userId,
+              email,
+              nickname
+            );
           itemChat = newMessages;
           if (lastChatLogIdInt > innerBiggestChatLog) {
             innerBiggestChatLog = lastChatLogIdInt;
