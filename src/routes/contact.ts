@@ -1,4 +1,5 @@
 import express from "express";
+import { ChatType } from "node-kakao";
 
 import { store } from "../store";
 
@@ -11,15 +12,17 @@ router.post("/", async (req, res) => {
     const allList = client.channelList.all();
     let chatList: any = {};
     for (const item of allList) {
-      const { displayUserList, lastChatLogId } = item.info;
-      const { nickname, userId } = displayUserList[0];
+      const { displayUserList, lastChatLogId, newChatCount } = item.info;
+      const { nickname, userId, profileURL } = displayUserList[0];
       const currentUserId = parseInt(userId);
       const myLastChatLogId = parseInt(lastChatLogId);
       chatList[nickname] = {
-        ...item.info,
         messages: [],
-        lastChatLogId: myLastChatLogId,
+        profileURL,
+        nickname,
         intId: currentUserId,
+        newChatCount,
+        lastChatLogId: myLastChatLogId,
       };
     }
     res.json({

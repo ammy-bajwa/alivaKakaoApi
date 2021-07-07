@@ -14,7 +14,8 @@ export const chatListHandler = async (
       let innerBiggestChatLog = biggestChatLog;
       for (const item of allList) {
         const { displayUserList, lastChatLogId, newChatCount } = item.info;
-        const { nickname, userId } = displayUserList[0];
+        const { nickname, userId, profileURL } = displayUserList[0];
+        console.log("displayUserList: ", displayUserList[0]);
         const currentUserId = parseInt(userId.toString());
         let itemChat: object[] = [] as object[];
         const lastChatLogIdInt = parseInt(lastChatLogId.toString());
@@ -34,8 +35,9 @@ export const chatListHandler = async (
           }
         }
         chatList[nickname] = {
-          ...item.info,
           messages: itemChat,
+          profileURL,
+          nickname,
           intId: currentUserId,
           newChatCount,
           lastChatLogId: lastChatLogIdInt,
