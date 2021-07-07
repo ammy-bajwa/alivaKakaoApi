@@ -1,14 +1,15 @@
-const express = require("express");
-const router = express.Router();
+import express from "express";
 
-const store = require("../store/index");
+import { store } from "../store";
+
+const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
     const { email } = req.body;
     const client = store.getClient(email);
     const allList = client.channelList.all();
-    let chatList = {};
+    let chatList: any = {};
     for (const item of allList) {
       const { displayUserList, lastChatLogId } = item.info;
       const { nickname, userId } = displayUserList[0];
@@ -34,4 +35,4 @@ router.post("/", async (req, res) => {
 });
 
 //export this router to use in our server.js
-module.exports = router;
+export default router;

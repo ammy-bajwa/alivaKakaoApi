@@ -1,17 +1,18 @@
-const express = require("express");
-const { AuthApiClient } = require("node-kakao");
+import express from "express";
+import { AuthApiClient } from "node-kakao";
+
+import { store } from "../store";
+
 const router = express.Router();
 
-const store = require("../store/index");
-
-router.post("/sendCode", async (req, res) => {
+router.post("/sendCode", async (req: any, res: any) => {
   const { deviceName, deviceId, email, password } = req.body;
   const authApi = await AuthApiClient.create(deviceName, deviceId);
   const form = { email, password, forced: true };
   store.setAuthApi(authApi);
   authApi
     .requestPasscode(form)
-    .then((data) => {
+    .then((data: any) => {
       if (data.success) {
         res.json({
           message: "Code sended to your kiwi device successfully",
@@ -23,7 +24,7 @@ router.post("/sendCode", async (req, res) => {
         });
       }
     })
-    .catch((err) => {
+    .catch((err: any) => {
       res.json({
         message: "Error in sending code to your device",
         error: err,
@@ -31,7 +32,7 @@ router.post("/sendCode", async (req, res) => {
     });
 });
 
-router.post("/setCode", async (req, res) => {
+router.post("/setCode", async (req: any, res: any) => {
   const authApi = store.authApi;
   const { code, email, password } = req.body;
   const form = { email, password, forced: true };
@@ -39,7 +40,7 @@ router.post("/setCode", async (req, res) => {
   console.log(authApi.deviceUUID);
   authApi
     .registerDevice(form, code, true)
-    .then((data) => {
+    .then((data: any) => {
       if (!data.success) {
         res.json({
           message: "Error in registering your device",
@@ -51,7 +52,7 @@ router.post("/setCode", async (req, res) => {
         });
       }
     })
-    .catch((err) => {
+    .catch((err: any) => {
       res.json({
         message: "Error in registering your device",
         error: err,
@@ -60,4 +61,4 @@ router.post("/setCode", async (req, res) => {
 });
 
 //export this router to use in our server.js
-module.exports = router;
+export default router;

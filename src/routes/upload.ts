@@ -4,17 +4,17 @@ const router = express.Router();
 
 // SET STORAGE
 var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function (req: any, file: any, cb: any) {
     cb(null, "uploads");
   },
-  filename: function (req, file, cb) {
+  filename: function (req: any, file: any, cb: any) {
     cb(null, Date.now() + "-" + file.originalname);
   },
 });
 
 var upload = multer({ storage: storage });
 
-router.post("/", upload.single("myFile"), async (req, res) => {
+router.post("/", upload.single("myFile"), async (req: any, res: any) => {
   const file = req.file;
   res.json({
     success: true,
@@ -24,4 +24,4 @@ router.post("/", upload.single("myFile"), async (req, res) => {
 });
 
 //export this router to use in our server.js
-module.exports = router;
+export default router;

@@ -1,4 +1,4 @@
-const causeDelay = async (time) => {
+export const causeDelay = async (time: number) => {
   const base64Promise = new Promise((resolve, reject) => {
     try {
       setTimeout(() => {
@@ -11,5 +11,3 @@ const causeDelay = async (time) => {
 
   return await base64Promise;
 };
-
-module.exports = { causeDelay };

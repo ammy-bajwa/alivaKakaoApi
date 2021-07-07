@@ -1,14 +1,15 @@
-const express = require("express");
+import express from "express";
+
+import { getAllMessages } from "../helpers/chat";
+import { store } from "../store";
+
 const router = express.Router();
-const { getAllMessages } = require("../helpers/chat");
 
-const store = require("../store/index");
-
-router.post("/", async (req, res) => {
+router.post("/", async (req: any, res: any) => {
   const { email, nickNameToGetChat, startChatLogId } = req.body;
   const client = store.getClient(email);
   const allList = client.channelList.all();
-  let currentUserId = "",
+  let currentUserId: number = 0,
     messageStore = [];
   for (const item of allList) {
     // Here we are getting all the messages from a time stamp
@@ -22,7 +23,7 @@ router.post("/", async (req, res) => {
         console.error(error);
       }
       if (parseInt(lastChatLogId) > startChatLogId) {
-        const { newMessages } = await getAllMessages(
+        const { newMessages }: any = await getAllMessages(
           item,
           lastChatLogId,
           startChatLogId,
@@ -45,4 +46,4 @@ router.post("/", async (req, res) => {
 });
 
 //export this router to use in our server.js
-module.exports = router;
+export default router;

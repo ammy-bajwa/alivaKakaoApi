@@ -1,10 +1,10 @@
 import express from "express";
 import { AuthApiClient, TalkClient, OAuthApiClient } from "node-kakao";
 
-const router = express.Router();
-
 import { store } from "../store";
 import { chatListHandler } from "../helpers/login/chatListHandler";
+
+const router = express.Router();
 
 router.post("/logout", async (req: any, res: any) => {
   const { email } = req.body;
